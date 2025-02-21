@@ -1,0 +1,82 @@
+name: SonarQube
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: windows-latest
+
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu'
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarCloud analysis
+
+      - name: Define Cache Directory Variable
+        run: echo "CACHE_DIR=$HOME/.sonar" >> $GITHUB_ENV
+
+      - name: Cache SonarQube Cloud packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CACHE_DIR }}/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache SonarQube Cloud scanner
+        id: cache-sonar-scanner
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CACHE_DIR }}/scanner
+          key: ${{ runner.os }}-sonar-scanner
+          restore-keys: ${{ runner.os }}-sonar-scanner
+
+      - name: Install SonarQube Cloud scanner
+        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
+        working-directory: ${{ env.CACHE_DIR }}
+        shell: powershell
+        run: |
+          New-Item -Path $env:CACHE_DIR/scanner -ItemType Directory -Force
+          dotnet tool update dotnet-sonarscanner --tool-path $env:CACHE_DIR/scanner
+
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_ORG: ${{ secrets.SONAR_ORG }}
+        working-directory: ./src
+        shell: powershell
+        run: |
+          $scannerPath = "$env:CACHE_DIR/scanner/dotnet-sonarscanner"
+
+          # Run SonarScanner Begin with quality gate waiting enabled
+          & $scannerPath begin /k:"$env:SONAR_PROJECT_KEY" /o:"$env:SONAR_ORG" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="$env:SONAR_HOST_URL" /d:sonar.qualitygate.wait=true /d:sonar.qualitygate.timeout=300
+
+          # Restore dependencies before build
+          dotnet restore
+
+          # Build the solution
+          dotnet build --no-restore --configuration Release
+
+          # Run SonarScanner End securely
+          & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
+
+      - name: Fail pipeline if quality gate fails
+        shell: bash
+        run: |
+          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}" | jq -r '.projectStatus.status')
+          if [[ "$STATUS" == "ERROR" ]]; then
+            echo "SonarQube quality gate failed. Failing pipeline."
+            exit 1
+          fi
