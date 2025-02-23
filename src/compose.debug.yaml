@@ -1,6 +1,6 @@
 ﻿services:
-  oweme.identity.server:
-    image: oweme.identity.server
+  identity:
+    container_name: identity
     build:
       context: .
       dockerfile: OweMe.Identity.Server/Dockerfile
