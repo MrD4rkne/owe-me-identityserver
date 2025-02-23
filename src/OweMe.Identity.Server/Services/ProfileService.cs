@@ -12,6 +12,10 @@ public class ProfileService(UserManager<ApplicationUser> userManager) : IProfile
     public async Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
         var user = await userManager.GetUserAsync(context.Subject);
+        if (user is null)
+        {
+            throw new ArgumentException("User not found");
+        }
         
         var claims = new List<Claim>
         {
