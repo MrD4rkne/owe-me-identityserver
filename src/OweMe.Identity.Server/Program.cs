@@ -16,13 +16,13 @@ try
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
 
-    var app = builder
+    var app = await builder
         .ConfigureServices()
         .ConfigurePipeline();
     
-    app.Run();
+    await app.RunAsync();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
 {
     Log.Fatal(ex, "Unhandled exception");
 }
