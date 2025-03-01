@@ -1,10 +1,10 @@
 // Copyright (c) Duende Software. All rights reserved.
 // See LICENSE in the project root for license information.
 
-using IdentityModel;
 using Microsoft.AspNetCore.Authentication;
 using System.Text;
 using System.Text.Json;
+using Duende.IdentityModel;
 
 namespace OweMe.Identity.Server.Pages.Diagnostics;
 
@@ -24,7 +24,7 @@ public class ViewModel
                 return;
             }
         }
-        Clients = Enumerable.Empty<string>();
+        Clients = [];
     }
 
     public AuthenticateResult AuthenticateResult { get; }
