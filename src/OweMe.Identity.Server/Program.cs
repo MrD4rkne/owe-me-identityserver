@@ -1,4 +1,5 @@
 ﻿using OweMe.Identity.Server;
+using OweMe.Identity.Server.Setup;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()

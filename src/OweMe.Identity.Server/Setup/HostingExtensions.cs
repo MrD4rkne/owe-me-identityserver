@@ -1,13 +1,11 @@
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using OweMe.Identity.Domain;
-using OweMe.Identity.Server.Models;
-using OweMe.Identity.Server.Services;
-using OweMe.Identity.Server.Setup;
+using OweMe.Identity.Server.Data;
+using OweMe.Identity.Server.Users;
 using Serilog;
 
-namespace OweMe.Identity.Server;
+namespace OweMe.Identity.Server.Setup;
 
 internal static class HostingExtensions
 {

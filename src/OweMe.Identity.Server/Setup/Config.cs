@@ -10,8 +10,7 @@ public static class Config
     [
         new IdentityResources.OpenId(),
         new IdentityResources.Profile(),
-        new IdentityResources.Email(),
-        new("roles", "User roles", [JwtClaimTypes.Role])
+        new(name:"user", userClaims: [JwtClaimTypes.Email])
     ];
 
     public static IEnumerable<ApiScope> ApiScopes =>

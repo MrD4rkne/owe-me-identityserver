@@ -3,17 +3,17 @@ using Duende.IdentityModel;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
-using OweMe.Identity.Server.Models;
 
-namespace OweMe.Identity.Server.Services;
+namespace OweMe.Identity.Server.Users;
 
-public class ProfileService(UserManager<ApplicationUser> userManager) : IProfileService
+public class ProfileService(UserManager<ApplicationUser> userManager, ILogger<ProfileService> profileService) : IProfileService
 {
     public async Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
         var user = await userManager.GetUserAsync(context.Subject);
         if (user is null)
         {
+            profileService.LogError("User associated with {subject} not found", context.Subject);
             throw new ArgumentException("User not found");
         }
         

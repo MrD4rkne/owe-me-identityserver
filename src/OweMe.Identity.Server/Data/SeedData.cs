@@ -1,9 +1,10 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Identity;
-using OweMe.Identity.Server.Models;
+using OweMe.Identity.Server.Setup;
+using OweMe.Identity.Server.Users;
 
-namespace OweMe.Identity.Server.Setup;
+namespace OweMe.Identity.Server.Data;
 
 internal sealed class SeedData
 {
