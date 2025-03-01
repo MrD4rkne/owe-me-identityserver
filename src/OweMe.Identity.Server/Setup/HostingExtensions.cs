@@ -11,6 +11,10 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSerilog();
+        
+        builder.Services.AddRazorPages();
+        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -65,8 +69,19 @@ internal static class HostingExtensions
             
             await SeedData.SeedUsers(app);
         }
+        else
+        {
+            app.UseExceptionHandler("/Home/Error");
+            app.UseHsts();
+        }
+        
+        app.UseStaticFiles();
+        app.UseRouting();
             
         app.UseIdentityServer();
+        
+        app.UseAuthorization();
+        app.MapRazorPages().RequireAuthorization();
 
         return app;
     }
