@@ -9,7 +9,7 @@ namespace OweMe.Identity.Server.Setup;
 
 internal static class HostingExtensions
 {
-    public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
+    public static WebApplication ConfigureServices(this WebApplicationBuilder builder, Config config)
     {
         builder.Services.AddSerilog();
         
@@ -23,7 +23,7 @@ internal static class HostingExtensions
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-
+        
         builder.Services.AddIdentityServer(options =>
             {
                 // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
@@ -49,7 +49,7 @@ internal static class HostingExtensions
                 options.EnableTokenCleanup = true;
                 options.TokenCleanupInterval = 3600; // interval in seconds (default is 3600)
             })
-            .AddTestUsers(Config.Users)
+            .AddTestUsers(config.Users)
             .AddAspNetIdentity<ApplicationUser>();
         
         builder.Services.AddTransient<IProfileService, ProfileService>();
@@ -57,17 +57,17 @@ internal static class HostingExtensions
         return builder.Build();
     }
     
-    public static async Task<WebApplication> ConfigurePipeline(this WebApplication app)
+    public static async Task<WebApplication> ConfigurePipeline(this WebApplication app, Config config)
     { 
         app.UseSerilogRequestLogging();
         
-        await SeedData.InitializeDatabase(app);
+        await SeedData.InitializeDatabase(app,config);
     
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
             
-            await SeedData.SeedUsers(app);
+            await SeedData.SeedUsers(app,config);
         }
         else
         {

@@ -16,10 +16,12 @@ try
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
+    
+    var config = new Config(builder.Configuration);
 
     var app = await builder
-        .ConfigureServices()
-        .ConfigurePipeline();
+        .ConfigureServices(config)
+        .ConfigurePipeline(config);
     
     await app.RunAsync();
 }

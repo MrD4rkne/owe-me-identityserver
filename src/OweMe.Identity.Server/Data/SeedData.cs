@@ -11,10 +11,10 @@ internal sealed class SeedData
     /// <summary>
     /// Seed the database with initial data from the configuration.
     /// </summary>
-    /// <param name="app"></param>
-    internal static async Task InitializeDatabase(IApplicationBuilder app)
+    /// <param name="applicationBuilder">App's builder</param>
+    internal static async Task InitializeDatabase(IApplicationBuilder applicationBuilder, Config config)
     {
-        using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
+        using var serviceScope = applicationBuilder.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
         var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<SeedData>>();
 
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
@@ -24,7 +24,7 @@ internal sealed class SeedData
         logger.LogInformation("Seeding Clients");
         if (!context.Clients.Any())
         {
-            foreach (var client in Config.Clients)
+            foreach (var client in config.Clients)
             {
                 context.Clients.Add(client.ToEntity());
             }
@@ -35,7 +35,7 @@ internal sealed class SeedData
         logger.LogInformation("Seeding Identity Resources");
         if (!context.IdentityResources.Any())
         {
-            foreach (var resource in Config.IdentityResources)
+            foreach (var resource in config.IdentityResources)
             {
                 context.IdentityResources.Add(resource.ToEntity());
             }
@@ -46,7 +46,7 @@ internal sealed class SeedData
         logger.LogInformation("Seeding Api Resources");
         if (!context.ApiScopes.Any())
         {
-            foreach (var resource in Config.ApiScopes)
+            foreach (var resource in config.ApiScopes)
             {
                 context.ApiScopes.Add(resource.ToEntity());
             }
@@ -59,7 +59,7 @@ internal sealed class SeedData
     /// Seed the database with test users.
     /// </summary>
     /// <param name="app"></param>
-    internal static async Task SeedUsers(IApplicationBuilder app)
+    internal static async Task SeedUsers(IApplicationBuilder app, Config config)
     {
         using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -67,7 +67,7 @@ internal sealed class SeedData
         
         logger.LogInformation("Seeding database with test users");
 
-        foreach (var user in Config.Users)
+        foreach (var user in config.Users)
         {
             var testUser = new ApplicationUser
             {
