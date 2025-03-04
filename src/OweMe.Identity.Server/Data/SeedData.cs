@@ -15,22 +15,29 @@ internal sealed class SeedData
     /// <param name="applicationBuilder">App's builder</param>
     internal static async Task InitializeDatabase(IApplicationBuilder applicationBuilder, Config config)
     {
-        using var serviceScope = applicationBuilder.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
+        using var serviceScope =
+            applicationBuilder.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
         var logger = serviceScope.ServiceProvider.GetRequiredService<ILogger<SeedData>>();
 
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-        
+
         logger.LogInformation("Seeding database with identity config");
-        
-        logger.LogInformation("Seeding Clients");
+
         if (!context.Clients.Any())
         {
+            logger.LogInformation("Seeding Clients");
             foreach (var client in config.Clients)
             {
                 context.Clients.Add(client.ToEntity());
             }
-            
+
             await context.SaveChangesAsync();
+
+            logger.LogInformation("Clients seeded");
+        }
+        else
+        {
+            logger.LogInformation("Clients already seeded");
         }
 
         logger.LogInformation("Seeding Identity Resources");
@@ -40,7 +47,7 @@ internal sealed class SeedData
             {
                 context.IdentityResources.Add(resource.ToEntity());
             }
-            
+
             await context.SaveChangesAsync();
         }
 
@@ -51,7 +58,7 @@ internal sealed class SeedData
             {
                 context.ApiScopes.Add(resource.ToEntity());
             }
-            
+
             await context.SaveChangesAsync();
         }
     }
@@ -61,7 +68,7 @@ internal sealed class SeedData
     /// </summary>
     /// <param name="app"></param>
     /// <param name="users"></param>
-    internal static async Task SeedUsers(IApplicationBuilder app, ICollection<TestUser> users)
+    internal static async Task SeedUsers(IApplicationBuilder app, IReadOnlyCollection<TestUser> users)
     {
         using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -89,7 +96,7 @@ internal sealed class SeedData
                 }
                 else
                 {
-                    logger.LogError("Test user creation failed: {errors}", result.Errors);
+                    logger.LogError("Test user creation failed: {result}", result);
                 }
             }
             else

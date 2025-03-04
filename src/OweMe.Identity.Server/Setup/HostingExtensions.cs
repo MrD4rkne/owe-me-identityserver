@@ -49,7 +49,6 @@ internal static class HostingExtensions
                 options.EnableTokenCleanup = true;
                 options.TokenCleanupInterval = 3600; // interval in seconds (default is 3600)
             })
-            .AddTestUsers(config.Users)
             .AddAspNetIdentity<ApplicationUser>();
         
         builder.Services.AddTransient<IProfileService, ProfileService>();
