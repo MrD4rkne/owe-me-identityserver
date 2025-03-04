@@ -48,8 +48,8 @@ public class Config(IConfiguration configuration)
             ClientId = OWEME_WEB_CLIENT_ID,
             ClientSecrets = { new Secret(configuration[OWEME_WEB_CLIENT_SECRET_SECTION].Sha256()) },
             AllowedGrantTypes = GrantTypes.Code,
-            RedirectUris = configuration.GetSection(OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION).Get<string[]>(), 
-            PostLogoutRedirectUris = configuration.GetSection(OWEME_WEB_CLIENT_POST_LOGOUT_REDIRECT_URIS_SECTION).Get<string[]>(),
+            RedirectUris = configuration.GetSection(OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION).Get<string[]>() ?? [], 
+            PostLogoutRedirectUris = configuration.GetSection(OWEME_WEB_CLIENT_POST_LOGOUT_REDIRECT_URIS_SECTION).Get<string[]>() ?? [],
             AllowedScopes =
             {
                 IdentityServerConstants.StandardScopes.OpenId,
@@ -58,5 +58,5 @@ public class Config(IConfiguration configuration)
         }
     ];
     
-    public readonly List<TestUser> Users = configuration.GetSection(TEST_USERS_SECTION).Get<List<TestUser>>();
+    public readonly List<TestUser> Users = configuration.GetSection(TEST_USERS_SECTION).Get<List<TestUser>>() ?? [];
 }

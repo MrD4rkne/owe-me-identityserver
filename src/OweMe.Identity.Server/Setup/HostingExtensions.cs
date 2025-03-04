@@ -67,7 +67,7 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
             
-            await SeedData.SeedUsers(app,config);
+            await SeedData.SeedUsers(app, config.Users);
         }
         else
         {

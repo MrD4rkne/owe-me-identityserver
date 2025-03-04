@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
+using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users;
@@ -59,7 +60,8 @@ internal sealed class SeedData
     /// Seed the database with test users.
     /// </summary>
     /// <param name="app"></param>
-    internal static async Task SeedUsers(IApplicationBuilder app, Config config)
+    /// <param name="users"></param>
+    internal static async Task SeedUsers(IApplicationBuilder app, ICollection<TestUser> users)
     {
         using var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>()!.CreateScope();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -67,7 +69,7 @@ internal sealed class SeedData
         
         logger.LogInformation("Seeding database with test users");
 
-        foreach (var user in config.Users)
+        foreach (var user in users)
         {
             var testUser = new ApplicationUser
             {
