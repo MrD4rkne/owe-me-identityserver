@@ -8,15 +8,15 @@ namespace OweMe.Identity.Server.Setup;
 public class Config(IConfiguration configuration)
 {
     private const string OWEME_CLIENT_ID = "oweme-client";
-    private const string OWEME_CLIENT_SECRET_SECTION = "OweMe::Api::ClientSecret";
+    private const string OWEME_CLIENT_SECRET_SECTION = "OweMe:Api:ClientSecret";
     private static readonly string[] OWEME_CLIENT_SCOPES = ["oweme-api"];
     
     private const string OWEME_WEB_CLIENT_ID = "oweme-web";
-    private const string OWEME_WEB_CLIENT_SECRET_SECTION = "OweMe::Web::ClientSecret";
-    private const string OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION = "OweMe::Web::RedirectUris";
-    private const string OWEME_WEB_CLIENT_POST_LOGOUT_REDIRECT_URIS_SECTION = "OweMe::Web::CallbackUris";
+    private const string OWEME_WEB_CLIENT_SECRET_SECTION = "OweMe::Web:ClientSecret";
+    private const string OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION = "OweMe::Web:RedirectUris";
+    private const string OWEME_WEB_CLIENT_POST_LOGOUT_REDIRECT_URIS_SECTION = "OweMe:Web:CallbackUris";
     
-    private const string TEST_USERS_SECTION = "OweMe::TestUsers";
+    private const string TEST_USERS_SECTION = "OweMe:TestUsers";
 
     public readonly IEnumerable<IdentityResource> IdentityResources =
     [
@@ -58,5 +58,5 @@ public class Config(IConfiguration configuration)
         }
     ];
     
-    public readonly List<TestUser> Users = configuration.GetSection(TEST_USERS_SECTION).Get<List<TestUser>>() ?? [];
+    public readonly TestUser[] Users = configuration.GetSection(TEST_USERS_SECTION).Get<TestUser[]>() ?? [];
 }
