@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Serilog;
 
 namespace OweMe.Identity.Server.Setup;
 
+[ExcludeFromCodeCoverage]
 internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder, Config config)
