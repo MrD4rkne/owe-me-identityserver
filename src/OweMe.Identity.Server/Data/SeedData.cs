@@ -13,6 +13,7 @@ internal sealed class SeedData
     /// Seed the database with initial data from the configuration.
     /// </summary>
     /// <param name="applicationBuilder">App's builder</param>
+    /// <param name="config">Configuration</param>
     internal static async Task InitializeDatabase(IApplicationBuilder applicationBuilder, Config config)
     {
         using var serviceScope =
