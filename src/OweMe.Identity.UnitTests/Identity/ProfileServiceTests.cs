@@ -39,6 +39,30 @@ public class ProfileServiceTests
         Assert.Contains(context.IssuedClaims, claim => claim.Type == JwtClaimTypes.Name && claim.Value == user.UserName);
         Assert.Contains(context.IssuedClaims, claim => claim.Type == JwtClaimTypes.Email && claim.Value == user.Email);
     }
+    
+    [Fact]
+    public async Task GetProfileDataAsync_UsernameNull_ThrowsArgumentException()
+    {
+        // Arrange
+        var user = new ApplicationUser { Id = "1", UserName = null, Email = "test@example.com" };
+        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
+        var context = new ProfileDataRequestContext(new ClaimsPrincipal(), new Client(), "test", []);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _profileService.GetProfileDataAsync(context));
+    }
+    
+    [Fact]
+    public async Task GetProfileDataAsync_EmailNull_ThrowsArgumentException()
+    {
+        // Arrange
+        var user = new ApplicationUser { Id = "1", UserName = "test", Email = null };
+        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(user);
+        var context = new ProfileDataRequestContext(new ClaimsPrincipal(), new Client(), "test", []);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _profileService.GetProfileDataAsync(context));
+    }
 
     [Fact]
     public async Task GetProfileDataAsync_UserNotFound_ThrowsArgumentException()
