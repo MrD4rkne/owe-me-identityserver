@@ -85,7 +85,7 @@ jobs:
           dotnet build --no-incremental
 
           # Run tests with DotCover and generate coverage report
-          dotnet dotcover test --dcReportType=HTML --attributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute
+          dotnet dotcover test --dcReportType=HTML --dcattributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute
 
           # Run SonarScanner End securely
           & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
