@@ -1,4 +1,5 @@
 name: SonarQube
+
 on:
   push:
     branches:
@@ -49,6 +50,11 @@ jobs:
           New-Item -Path $env:CACHE_DIR/scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path $env:CACHE_DIR/scanner
 
+      - name: Install dotcover
+        shell: powershell
+        run: |
+          dotnet tool install --global JetBrains.dotCover.GlobalTool
+
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -61,13 +67,20 @@ jobs:
           $scannerPath = "$env:CACHE_DIR/scanner/dotnet-sonarscanner"
 
           # Run SonarScanner Begin with quality gate waiting enabled
-          & $scannerPath begin /k:"$env:SONAR_PROJECT_KEY" /o:"$env:SONAR_ORG" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="$env:SONAR_HOST_URL" /d:sonar.qualitygate.wait=true /d:sonar.qualitygate.timeout=300
+          & $scannerPath begin /k:"$env:SONAR_PROJECT_KEY" `
+            /o:"$env:SONAR_ORG" `
+            /d:sonar.token="$env:SONAR_TOKEN" `
+            /d:sonar.host.url="$env:SONAR_HOST_URL" `
+            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html `
+            /d:sonar.scanner.scanAll=false `
+            /d:sonar.qualitygate.wait=true `
+            /d:sonar.qualitygate.timeout=300
 
-          # Restore dependencies before build
-          dotnet restore
+          # Build the project
+          dotnet build --no-incremental
 
-          # Build the solution
-          dotnet build --no-restore --configuration Release
+          # Run tests with DotCover and generate coverage report
+          dotnet dotcover test --dcReportType=HTML
 
           # Run SonarScanner End securely
           & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
