@@ -2,6 +2,7 @@
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
+using static System.Array;
 
 namespace OweMe.Identity.Server.Setup;
 
@@ -13,7 +14,7 @@ public class Config(IConfiguration configuration)
     
     private const string OWEME_WEB_CLIENT_ID = "oweme-web";
     private const string OWEME_WEB_CLIENT_SECRET_SECTION = "OweMe:Web:ClientSecret";
-    private const string OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION = "OweMe::Web:RedirectUris";
+    private const string OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION = "OweMe:Web:RedirectUris";
     private const string OWEME_WEB_CLIENT_POST_LOGOUT_REDIRECT_URIS_SECTION = "OweMe:Web:CallbackUris";
     
     private const string TEST_USERS_SECTION = "OweMe:TestUsers";

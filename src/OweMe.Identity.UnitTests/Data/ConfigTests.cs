@@ -33,18 +33,29 @@ public class ConfigTests
     
     
     private readonly Config _config;
+    private static readonly string[] expected = new[] { "oweme-api" };
+
+    private static void AddArrayToConfiguration<T>(string key, T[] array, Func<T, string> selector,
+        IDictionary<string, string> dictionary)
+    {
+        for (var i = 0; i < array.Length; i++)
+        {
+            dictionary.Add($"{key}:{i}", selector(array[i]));
+        }
+    }
 
     public ConfigTests()
     {
         var inMemorySettings = new Dictionary<string, string>
         {
             { "OweMe:Api:ClientSecret", OWEME_API_SECRET },
-            { "OweMe:Web:ClientSecret", OWEME_WEB_SECRET },
-            { "OweMe:Web:RedirectUris", string.Join(",", OWEME_WEB_REDIRECT_URIS) },
-            { "OweMe:Web:CallbackUris", string.Join(",", OWEME_WEB_CALLBACK_URIS) },
+            { "OweMe:Web:ClientSecret", OWEME_WEB_SECRET }
         };
+        
+        AddArrayToConfiguration("OweMe:Web:RedirectUris", OWEME_WEB_REDIRECT_URIS, uri => uri, inMemorySettings);
+        AddArrayToConfiguration("OweMe:Web:CallbackUris", OWEME_WEB_CALLBACK_URIS, uri => uri, inMemorySettings);
 
-        for (int i = 0; i < OWEME_TEST_USERS.Length; i++)
+        for (var i = 0; i < OWEME_TEST_USERS.Length; i++)
         {
             inMemorySettings.Add($"OweMe:TestUsers:{i}:SubjectId", OWEME_TEST_USERS[i].SubjectId);
             inMemorySettings.Add($"OweMe:TestUsers:{i}:Username", OWEME_TEST_USERS[i].Username);
@@ -102,17 +113,17 @@ public class ConfigTests
         var apiClient = clients.FirstOrDefault(c => c.ClientId == "oweme-client");
         apiClient.ShouldNotBeNull();
         apiClient.ClientSecrets.ShouldContain(secret => secret.Value == OWEME_API_SECRET.Sha256());
-        apiClient.AllowedScopes.ShouldBeEquivalentTo(new[] { "oweme-api" });
+        apiClient.AllowedScopes.ToArray().ShouldBeEquivalentTo(expected);
         apiClient.AllowedGrantTypes.ShouldAllBe(x=> x == OidcConstants.GrantTypes.Password || x == OidcConstants.GrantTypes.ClientCredentials);
         apiClient.AlwaysSendClientClaims.ShouldBeTrue();
         
         var webClient = clients.FirstOrDefault(c => c.ClientId == "oweme-web");
         webClient.ShouldNotBeNull();
         webClient.ClientSecrets.ShouldContain(secret => secret.Value == OWEME_WEB_SECRET.Sha256());
-        webClient.AllowedGrantTypes.ShouldBeEquivalentTo(new[] { GrantTypes.Code });
-        webClient.RedirectUris.ShouldBeEquivalentTo(OWEME_WEB_REDIRECT_URIS);
-        webClient.PostLogoutRedirectUris.ShouldBeEquivalentTo(OWEME_WEB_CALLBACK_URIS);
-        webClient.AllowedScopes.ShouldBeEquivalentTo(new[] { IdentityServerConstants.StandardScopes.OpenId, IdentityServerConstants.StandardScopes.Profile });
+        webClient.AllowedGrantTypes.ToList().ShouldBeEquivalentTo(GrantTypes.Code.ToList());
+        webClient.RedirectUris.ToArray().ShouldBeEquivalentTo(OWEME_WEB_REDIRECT_URIS);
+        webClient.PostLogoutRedirectUris.ToArray().ShouldBeEquivalentTo(OWEME_WEB_CALLBACK_URIS);
+        webClient.AllowedScopes.ToArray().ShouldBeEquivalentTo(new[] { IdentityServerConstants.StandardScopes.OpenId, IdentityServerConstants.StandardScopes.Profile });
     }
 
     [Fact]
