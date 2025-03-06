@@ -50,6 +50,11 @@ jobs:
           New-Item -Path $env:CACHE_DIR/scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path $env:CACHE_DIR/scanner
 
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x.x
+
       - name: Install dotcover
         shell: powershell
         run: |
