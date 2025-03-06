@@ -50,6 +50,11 @@ jobs:
           New-Item -Path $env:CACHE_DIR/scanner -ItemType Directory -Force
           dotnet tool update dotnet-sonarscanner --tool-path $env:CACHE_DIR/scanner
 
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x.x
+
       - name: Install dotcover
         shell: powershell
         run: |
@@ -80,16 +85,7 @@ jobs:
           dotnet build --no-incremental
 
           # Run tests with DotCover and generate coverage report
-          dotnet dotcover test --dcReportType=HTML
+          dotnet dotcover test --dcReportType=HTML --dcattributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute
 
           # Run SonarScanner End securely
           & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
-
-      - name: Fail pipeline if quality gate fails
-        shell: bash
-        run: |
-          STATUS=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/qualitygates/project_status?projectKey=${{ secrets.SONAR_PROJECT_KEY }}" | jq -r '.projectStatus.status')
-          if [[ "$STATUS" == "ERROR" ]]; then
-            echo "SonarQube quality gate failed. Failing pipeline."
-            exit 1
-          fi

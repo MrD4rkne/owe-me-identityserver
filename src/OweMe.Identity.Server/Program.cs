@@ -1,4 +1,5 @@
 ﻿using OweMe.Identity.Server;
+using OweMe.Identity.Server.Setup;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -15,14 +16,16 @@ try
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
-
-    var app = builder
-        .ConfigureServices()
-        .ConfigurePipeline();
     
-    app.Run();
+    var config = new Config(builder.Configuration);
+
+    var app = await builder
+        .ConfigureServices(config)
+        .ConfigurePipeline(config);
+    
+    await app.RunAsync();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
 {
     Log.Fatal(ex, "Unhandled exception");
 }
