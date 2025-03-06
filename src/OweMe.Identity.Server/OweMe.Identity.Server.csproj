@@ -30,7 +30,7 @@
 			<Value>**/Program.cs</Value>
 			<Value>**/Config.cs</Value>
 			<Value>**/HostingExtensions.cs</Value>
-			<Value>**/Migrations/*.cs</Value>
+			<Value>**/Migrations/**.cs</Value>
 			<Value>**/Pages/**</Value>
 		</SonarQubeSetting>
 	</ItemGroup>
