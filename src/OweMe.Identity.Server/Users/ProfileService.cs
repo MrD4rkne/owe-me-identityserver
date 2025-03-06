@@ -17,6 +17,12 @@ public class ProfileService(UserManager<ApplicationUser> userManager, ILogger<Pr
             throw new ArgumentException("User not found");
         }
         
+        if(user.UserName is null || user.Email is null)
+        {
+            profileService.LogError("User associated with {subject} has no username or email", context.Subject);
+            throw new ArgumentException("User has no username or email");
+        }
+        
         var claims = new List<Claim>
         {
             new(JwtClaimTypes.Subject, user.Id),
