@@ -1,4 +1,5 @@
-﻿using Duende.IdentityServer.EntityFramework.DbContexts;
+﻿using System.Diagnostics.CodeAnalysis;
+using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
@@ -7,7 +8,8 @@ using OweMe.Identity.Server.Users;
 
 namespace OweMe.Identity.Server.Data;
 
-internal sealed class SeedData
+[ExcludeFromCodeCoverage]
+public sealed class SeedData
 {
     /// <summary>
     /// Seed the database with initial data from the configuration.
