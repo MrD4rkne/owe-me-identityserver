@@ -12,7 +12,7 @@ public class Config(IConfiguration configuration)
     private static readonly string[] OWEME_CLIENT_SCOPES = ["oweme-api"];
     
     private const string OWEME_WEB_CLIENT_ID = "oweme-web";
-    private const string OWEME_WEB_CLIENT_SECRET_SECTION = "OweMe::Web:ClientSecret";
+    private const string OWEME_WEB_CLIENT_SECRET_SECTION = "OweMe:Web:ClientSecret";
     private const string OWEME_WEB_CLIENT_REDIRECT_URIS_SECTION = "OweMe::Web:RedirectUris";
     private const string OWEME_WEB_CLIENT_POST_LOGOUT_REDIRECT_URIS_SECTION = "OweMe:Web:CallbackUris";
     
