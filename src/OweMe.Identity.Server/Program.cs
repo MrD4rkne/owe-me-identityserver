@@ -20,8 +20,8 @@ try
     var config = new Config(builder.Configuration);
 
     var app = await builder
-        .ConfigureServices(config)
-        .ConfigurePipeline(config);
+        .ConfigureServices(config);
+    app = await app.ConfigurePipeline(config);
     
     await app.RunAsync();
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ namespace OweMe.Identity.Server.Setup;
 [ExcludeFromCodeCoverage]
 internal static class HostingExtensions
 {
-    public static WebApplication ConfigureServices(this WebApplicationBuilder builder, Config config)
+    public static async Task<WebApplication> ConfigureServices(this WebApplicationBuilder builder, Config config)
     {
         builder.Services.AddSerilog();
         
@@ -54,8 +55,23 @@ internal static class HostingExtensions
             .AddAspNetIdentity<ApplicationUser>();
         
         builder.Services.AddTransient<IProfileService, ProfileService>();
+        
+        if(builder.Configuration["Migrations:Apply"] == "true")
+        {
+            await builder.Services.ApplyMigrations<ApplicationDbContext>();
+            await builder.Services.ApplyMigrations<ConfigurationDbContext>();
+            await builder.Services.ApplyMigrations<PersistedGrantDbContext>();
+        }
 
         return builder.Build();
+    }
+    
+    public static async Task ApplyMigrations<TContext>(this IServiceCollection services)
+    where TContext : DbContext
+    {
+        using var scope = services.BuildServiceProvider().CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TContext>();
+        await dbContext.Database.MigrateAsync();
     }
     
     public static async Task<WebApplication> ConfigurePipeline(this WebApplication app, Config config)
