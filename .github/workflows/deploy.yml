@@ -38,6 +38,9 @@ jobs:
       - name: Publish
         run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --no-restore --no-build --property:PublishDir=${{ env.PUBLISH_DIR }}
 
+      - name: Install EF Core tools
+        run: dotnet tool install --global dotnet-ef
+
       - name: Run EF Migrations
         env:
           ConnectionString: ${{ secrets.AZURE_DB_CONNECTION_STRING }}
