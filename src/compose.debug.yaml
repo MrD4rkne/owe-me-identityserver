@@ -5,8 +5,8 @@
       context: .
       dockerfile: OweMe.Identity.Server/Dockerfile
     ports:
-        - "8180:8180"
-        - "8181:8181"
+      - "8180:8180"
+      - "8181:8181"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=https://+:8181;http://+:8180
@@ -14,18 +14,16 @@
       - ASPNETCORE_Kestrel__Certificates__Default__Password=1qaz@WSX
       - Serilog__WriteTo__0__Name=Console
       - Serilog__Enrich__0=WithSpan
-      - ConnectionStrings__DefaultConnection=Server=oweme_identity_database;Database=OweMe.Identity;User=sa;Password=Password123;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=oweme_identity_database;Database=OweMe.Identity;Username=sa;Password=Password123;TrustServerCertificate=True;
     volumes:
       - ~/.aspnet/https:/https:ro
     depends_on:
       - oweme_identity_database
   oweme_identity_database:
-    image: "mcr.microsoft.com/mssql/server:2022-latest"
-    build:
-      context: .
+    image: "postgres:15"
     ports:
-      - "1433:1433"
+      - "5432:5432"
     environment:
-        - SA_PASSWORD=Password123
-        - ACCEPT_EULA=Y
-        - MSSQL_PID=Express
+      - POSTGRES_DB=OweMe.Identity
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=Password123
