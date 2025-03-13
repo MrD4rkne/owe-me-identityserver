@@ -38,6 +38,13 @@ jobs:
       - name: Publish
         run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --no-restore --no-build --property:PublishDir=${{ env.PUBLISH_DIR }}
 
+      - name: Run EF Migrations
+        env:
+          ConnectionString: ${{ secrets.AZURE_DB_CONNECTION_STRING }}
+        run: |
+          dotnet ef database update --connection "$ConnectionString" --project ${{ env.API_PROJECT_PATH }}
+
+
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -55,6 +62,7 @@ jobs:
         with:
           name: ${{ env.PUBLISH_ARTIFACT }}
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          
 
       - name: Deploy
         uses: azure/webapps-deploy@v2
