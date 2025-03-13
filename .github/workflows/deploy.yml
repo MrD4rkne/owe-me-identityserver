@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 env:
   AZURE_WEBAPP_NAME: oweme-identity-server
