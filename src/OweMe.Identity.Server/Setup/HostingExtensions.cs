@@ -16,10 +16,11 @@ internal static class HostingExtensions
         builder.Services.AddSerilog();
         
         builder.Services.AddRazorPages();
-        
+
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            options.UseNpgsql(connectionString);
         });
         
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -35,7 +36,7 @@ internal static class HostingExtensions
             {
                 options.ConfigureDbContext = dbContextBuilder =>
                 {
-                    dbContextBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                    dbContextBuilder.UseNpgsql(connectionString,
                         sqlOptions => sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
                 };
             })
@@ -43,7 +44,7 @@ internal static class HostingExtensions
             {
                 options.ConfigureDbContext = dbContextBuilder =>
                 {
-                    dbContextBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                    dbContextBuilder.UseNpgsql(connectionString,
                         sqlOptions => sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
                 };
 
