@@ -19,7 +19,7 @@ internal static class HostingExtensions
         
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
         });
         
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -35,7 +35,7 @@ internal static class HostingExtensions
             {
                 options.ConfigureDbContext = dbContextBuilder =>
                 {
-                    dbContextBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                    dbContextBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
                         sqlOptions => sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
                 };
             })
@@ -43,7 +43,7 @@ internal static class HostingExtensions
             {
                 options.ConfigureDbContext = dbContextBuilder =>
                 {
-                    dbContextBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+                    dbContextBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
                         sqlOptions => sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
                 };
 
