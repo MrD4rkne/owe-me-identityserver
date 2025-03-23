@@ -6,7 +6,6 @@ on:
     branches: [master]
 
 env:
-  AZURE_WEBAPP_NAME: oweme-identity-server
   AZURE_WEBAPP_PACKAGE_PATH: "./src/OweMe.Identity.Server/publish"
   SOLUTION_PATH: "./src/OweMe.Identity.sln"
   API_PROJECT_PATH: "./src/OweMe.Identity.Server"
@@ -59,7 +58,7 @@ jobs:
       - name: Deploy
         uses: azure/webapps-deploy@v2
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
   
