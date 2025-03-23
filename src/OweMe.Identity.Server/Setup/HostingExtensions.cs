@@ -58,6 +58,7 @@ internal static class HostingExtensions
         
         if(builder.Configuration["Migrations:Apply"] == "true")
         {
+            Log.Information("Applying migrations");
             await builder.Services.ApplyMigrations<ApplicationDbContext>();
             await builder.Services.ApplyMigrations<ConfigurationDbContext>();
             await builder.Services.ApplyMigrations<PersistedGrantDbContext>();
@@ -69,6 +70,8 @@ internal static class HostingExtensions
     public static async Task ApplyMigrations<TContext>(this IServiceCollection services)
     where TContext : DbContext
     {
+        Log.Information("Applying migrations for {Context}", typeof(TContext).Name);
+        
         using var scope = services.BuildServiceProvider().CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<TContext>();
         await dbContext.Database.MigrateAsync();
@@ -78,7 +81,7 @@ internal static class HostingExtensions
     { 
         app.UseSerilogRequestLogging();
         
-        await SeedData.InitializeDatabase(app,config);
+        await SeedData.InitializeDatabase(app, config);
     
         if (app.Environment.IsDevelopment())
         {
