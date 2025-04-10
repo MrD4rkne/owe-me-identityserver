@@ -58,7 +58,7 @@ jobs:
       - name: Install dotcover
         shell: powershell
         run: |
-          dotnet tool install --global JetBrains.dotCover.GlobalTool
+          dotnet tool install --global JetBrains.dotCover.CommandLineTools
 
       - name: SonarQube Begin
         env:
@@ -97,8 +97,11 @@ jobs:
         working-directory: ./src
         shell: powershell
         run: |
-          dotnet dotcover test --configuration Release --no-restore --no-build --verbosity normal `
-          --dcReportType=HTML --dcattributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute
+          dotnet dotcover cover-dotnet `
+          --reportType=HTML `
+          --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute `
+          --Output=dotCover.Output.html `
+          -- test --configuration Release --no-restore --no-build --verbosity normal
 
       - name: SonarQube End
         env:
