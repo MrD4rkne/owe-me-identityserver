@@ -97,7 +97,7 @@ jobs:
         working-directory: ./src
         shell: powershell
         run: |
-          dotnet dotcover cover-dotnet `
+          dotcover cover-dotnet `
           --reportType=HTML `
           --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute `
           --Output=dotCover.Output.html `
