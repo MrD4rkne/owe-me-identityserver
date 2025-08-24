@@ -55,11 +55,16 @@ jobs:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
 
       - name: Install dotcover
-        run: |
-          dotnet tool install --global JetBrains.dotCover.CommandLineTools
+        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
+
+      - uses: dotnet/nbgv@master
+        id: nbgv
+      
+      - name: Get version
+        run: echo "${{ steps.nbgv.outputs.SemVer2 }}"
 
       - name: SonarQube Begin
         env:
@@ -93,10 +98,10 @@ jobs:
       - name: Test with coverage
         working-directory: ./src
         run: |
-          dotcover cover-dotnet `
-          --reportType=HTML `
-          --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute `
-          --Output=dotCover.Output.html `
+          dotCover cover-dotnet \
+            --reportType=HTML \
+            --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
+            --Output=dotCover.Output.html \
           -- test --configuration Release --no-restore --no-build --verbosity normal
 
       - name: SonarQube End
