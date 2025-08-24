@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
+using OweMe.Identity.Server.Users.Persistence;
 using Serilog;
 
 namespace OweMe.Identity.Server.Setup;

@@ -4,9 +4,8 @@ using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
 using OweMe.Identity.Server.Setup;
-using OweMe.Identity.Server.Users;
 
-namespace OweMe.Identity.Server.Data;
+namespace OweMe.Identity.Server.Users.Persistence;
 
 [ExcludeFromCodeCoverage]
 public sealed class SeedData
@@ -90,7 +89,7 @@ public sealed class SeedData
 
             if (! userManager.Users.Any(u => u.UserName != testUser.UserName))
             {
-                logger.LogInformation("Creating test user {username}", testUser.UserName);
+                logger.LogInformation("Creating test user {Username}", testUser.UserName);
                 
                 var result = await userManager.CreateAsync(testUser, user.Password);
                 if (result.Succeeded)
@@ -99,12 +98,12 @@ public sealed class SeedData
                 }
                 else
                 {
-                    logger.LogError("Test user creation failed: {result}", result);
+                    logger.LogError("Test user creation failed: {Result}", result);
                 }
             }
             else
             {
-                logger.LogInformation("Test user {username} already exists", testUser.UserName);
+                logger.LogInformation("Test user {Username} already exists", testUser.UserName);
             }
         }
     }
