@@ -7,7 +7,7 @@ namespace OweMe.Identity.IntegrationTests;
 public class UnitTest1(IntegrationTestSetup setup) : IClassFixture<IntegrationTestSetup>
 {
     [Fact]
-    public async Task Test_OpenIdConfig_Accessable()
+    public async Task Test_OpenIdConfig_Accessible()
     {
         // Arrange
         await setup.StartAppAsync();
