@@ -13,7 +13,7 @@ using Serilog;
 namespace OweMe.Identity.Server.Setup;
 
 [ExcludeFromCodeCoverage]
-internal static class HostingExtensions
+public static class HostingExtensions
 {
     public static WebApplicationBuilder AddIdentityServer(this WebApplicationBuilder builder)
     {
