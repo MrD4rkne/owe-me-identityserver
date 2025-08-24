@@ -4,6 +4,7 @@ using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
 using OweMe.Identity.Server.Setup;
+using OweMe.Identity.Server.Users.Domain;
 
 namespace OweMe.Identity.Server.Users.Persistence;
 

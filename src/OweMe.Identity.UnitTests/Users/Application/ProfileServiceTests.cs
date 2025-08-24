@@ -1,14 +1,13 @@
 ﻿using System.Security.Claims;
 using Duende.IdentityModel;
 using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
-using OweMe.Identity.Server.Users;
-using Xunit;
+using OweMe.Identity.Server.Users.Application;
+using OweMe.Identity.Server.Users.Domain;
 
-namespace OweMe.Identity.UnitTests;
+namespace OweMe.Identity.UnitTests.Users.Application;
 
 public class ProfileServiceTests
 {
