@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build and analyze
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Set up JDK 17
@@ -44,11 +44,10 @@ jobs:
 
       - name: Install SonarQube Cloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        working-directory: ${{ env.CACHE_DIR }}
-        shell: powershell
         run: |
-          New-Item -Path $env:CACHE_DIR/scanner -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path $env:CACHE_DIR/scanner
+          # Create the cache directory if it doesn't exist
+          mkdir -p ${{ env.CACHE_DIR }}/scanner
+          dotnet tool update dotnet-sonarscanner --tool-path ${{ env.CACHE_DIR }}/scanner
           
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -56,12 +55,16 @@ jobs:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
 
       - name: Install dotcover
-        shell: powershell
-        run: |
-          dotnet tool install --global JetBrains.dotCover.CommandLineTools
+        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
+
+      - uses: dotnet/nbgv@master
+        id: nbgv
+      
+      - name: Get version
+        run: echo "${{ steps.nbgv.outputs.SemVer2 }}"
 
       - name: SonarQube Begin
         env:
@@ -69,41 +72,36 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_ORG: ${{ secrets.SONAR_ORG }}
-        working-directory: ./src
-        shell: powershell
         run: |
-          $scannerPath = "$env:CACHE_DIR/scanner/dotnet-sonarscanner"
+          scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
 
           # Run SonarScanner Begin with quality gate waiting enabled
-          & $scannerPath begin /k:"$env:SONAR_PROJECT_KEY" `
-            /o:"$env:SONAR_ORG" `
-            /d:sonar.token="$env:SONAR_TOKEN" `
-            /d:sonar.host.url="$env:SONAR_HOST_URL" `
-            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html `
-            /d:sonar.scanner.scanAll=false `
-            /d:sonar.qualitygate.wait=true `
+          "$scannerPath" begin /k:"$SONAR_PROJECT_KEY" \
+            /o:"$SONAR_ORG" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="$SONAR_HOST_URL" \
+            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html \
+            /d:sonar.scanner.scanAll=false \
+            /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300
 
       - name: Dotnet restore
         working-directory: ./src
-        shell: powershell
         run: |
           dotnet restore
           
       - name: Build
         working-directory: ./src
-        shell: powershell
         run: |
           dotnet build --configuration Release --no-restore
           
       - name: Test with coverage
         working-directory: ./src
-        shell: powershell
         run: |
-          dotcover cover-dotnet `
-          --reportType=HTML `
-          --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute `
-          --Output=dotCover.Output.html `
+          dotCover cover-dotnet \
+            --reportType=HTML \
+            --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
+            --Output=dotCover.Output.html \
           -- test --configuration Release --no-restore --no-build --verbosity normal
 
       - name: SonarQube End
@@ -113,7 +111,6 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_ORG: ${{ secrets.SONAR_ORG }}
         working-directory: ./src
-        shell: powershell
         run: |
           $scannerPath = "$env:CACHE_DIR/scanner/dotnet-sonarscanner"
           
