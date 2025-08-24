@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_WEBAPP_PACKAGE_PATH: "./src/OweMe.Identity.Server/publish"
-  SOLUTION_PATH: "./src/OweMe.Identity.sln"
+  SOLUTION_PATH: "./OweMe.Identity.sln"
   API_PROJECT_PATH: "./src/OweMe.Identity.Server"
   PUBLISH_DIR: "./publish"
   PUBLISH_ARTIFACT: "oweme-identity-server"
