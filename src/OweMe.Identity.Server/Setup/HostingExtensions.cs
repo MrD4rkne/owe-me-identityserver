@@ -3,6 +3,7 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Application;
 using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Persistence;
@@ -18,11 +19,6 @@ internal static class HostingExtensions
         builder.Services.AddSerilog();
         
         builder.Services.AddRazorPages();
-        
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-        });
         
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -55,7 +51,7 @@ internal static class HostingExtensions
             })
             .AddAspNetIdentity<ApplicationUser>();
         
-        builder.Services.AddTransient<IProfileService, ProfileService>();
+        builder.AddUsers();
         
         if(builder.Configuration["Migrations:Apply"] == "true")
         {
