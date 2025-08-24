@@ -53,6 +53,7 @@ internal static class HostingExtensions
             .AddAspNetIdentity<ApplicationUser>();
         
         builder.AddUsers();
+        builder.Services.AddSingleton<DatabaseSeeder>();
         builder.Services.AddHostedService<MigrationHostedService>();
 
         return builder;

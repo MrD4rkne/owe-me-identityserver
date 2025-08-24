@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.EntityFramework.Entities;
 using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
@@ -21,9 +22,9 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
         using var serviceScope = serviceScopeFactory.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
         
-        await SeedClients(context, config);
-        await SeedIdentityResources(context, config);
-        await SeedApiResources(context, config);
+        await SeedClients(context.Clients, config);
+        await SeedIdentityResources(context.IdentityResources, config);
+        await SeedApiResources(context.ApiScopes, config);
         
         logger.LogDebug("Saving changes to the database");
         _ = await context.SaveChangesAsync(cancellationToken);
@@ -73,30 +74,30 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
         }
     }
     
-    private async Task SeedClients(ConfigurationDbContext context, Config config)
+    private Task SeedClients(DbSet<Client> clients, Config config)
     {
         logger.LogDebug("Seeding Clients");
-        foreach (var client in config.Clients)
-        {
-            context.Clients.Add(client.ToEntity());
-        }
+        var clientsToAdd = config.Clients
+            .Select(client => client.ToEntity())
+            .Where(clientEntity => !clients.Any(c => c.ClientId == clientEntity.ClientId));
+        return clients.AddRangeAsync(clientsToAdd);
     }
     
-    private async Task SeedIdentityResources(ConfigurationDbContext context, Config config)
+    private Task SeedIdentityResources(DbSet<IdentityResource> identityResources, Config config)
     {
         logger.LogDebug("Seeding Identity Resources");
-        foreach (var resource in config.IdentityResources)
-        {
-            context.IdentityResources.Add(resource.ToEntity());
-        }
+        var identityResourcesToAdd = config.IdentityResources
+            .Select(resource => resource.ToEntity())
+            .Where(resourceEntity => !identityResources.Any(r => r.Name == resourceEntity.Name));
+        return identityResources.AddRangeAsync(identityResourcesToAdd);
     }
     
-    private async Task SeedApiResources(ConfigurationDbContext context, Config config)
+    private Task SeedApiResources(DbSet<ApiScope> scopes, Config config)
     {
         logger.LogDebug("Seeding Api Resources");
-        foreach (var resource in config.ApiScopes)
-        {
-            context.ApiScopes.Add(resource.ToEntity());
-        }
+        var apiScopesToAdd = config.ApiScopes
+            .Select(scope => scope.ToEntity())
+            .Where(scopeEntity => !scopes.Any(s => s.Name == scopeEntity.Name));
+        return scopes.AddRangeAsync(apiScopesToAdd);
     }
 }
