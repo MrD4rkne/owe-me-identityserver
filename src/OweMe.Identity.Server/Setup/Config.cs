@@ -2,7 +2,6 @@
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
-using static System.Array;
 
 namespace OweMe.Identity.Server.Setup;
 

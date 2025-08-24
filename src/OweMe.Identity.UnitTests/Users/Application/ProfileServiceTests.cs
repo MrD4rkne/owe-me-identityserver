@@ -1,14 +1,13 @@
 ﻿using System.Security.Claims;
 using Duende.IdentityModel;
 using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
-using OweMe.Identity.Server.Users;
-using Xunit;
+using OweMe.Identity.Server.Users.Application;
+using OweMe.Identity.Server.Users.Domain;
 
-namespace OweMe.Identity.UnitTests;
+namespace OweMe.Identity.UnitTests.Users.Application;
 
 public class ProfileServiceTests
 {
@@ -68,7 +67,7 @@ public class ProfileServiceTests
     public async Task GetProfileDataAsync_UserNotFound_ThrowsArgumentException()
     {
         // Arrange
-        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null);
+        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null!);
         var context = new ProfileDataRequestContext(new ClaimsPrincipal(), new Client(), "test", []);
 
         // Act & Assert
@@ -94,7 +93,7 @@ public class ProfileServiceTests
     public async Task IsActiveAsync_UserNotFound_SetsIsActiveToFalse()
     {
         // Arrange
-        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null);
+        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null!);
         var context = new IsActiveContext(new ClaimsPrincipal(), new Client(), "test");
 
         // Act

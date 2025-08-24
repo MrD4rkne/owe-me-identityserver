@@ -3,23 +3,24 @@ using Duende.IdentityModel;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
+using OweMe.Identity.Server.Users.Domain;
 
-namespace OweMe.Identity.Server.Users;
+namespace OweMe.Identity.Server.Users.Application;
 
-public class ProfileService(UserManager<ApplicationUser> userManager, ILogger<ProfileService> profileService) : IProfileService
+public class ProfileService(UserManager<ApplicationUser> userManager, ILogger<ProfileService> logger) : IProfileService
 {
     public async Task GetProfileDataAsync(ProfileDataRequestContext context)
     {
         var user = await userManager.GetUserAsync(context.Subject);
         if (user is null)
         {
-            profileService.LogError("User associated with {subject} not found", context.Subject);
+            logger.LogError("User associated with {Subject} not found", context.Subject);
             throw new ArgumentException("User not found");
         }
         
         if(user.UserName is null || user.Email is null)
         {
-            profileService.LogError("User associated with {subject} has no username or email", context.Subject);
+            logger.LogError("User associated with {Subject} has no username or email", context.Subject);
             throw new ArgumentException("User has no username or email");
         }
         

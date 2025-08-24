@@ -26,4 +26,8 @@
       <ProjectReference Include="..\OweMe.Identity.Server\OweMe.Identity.Server.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Identity\" />
+    </ItemGroup>
+
 </Project>
