@@ -1,16 +1,17 @@
 ﻿using Duende.IdentityModel.Client;
 using Microsoft.Extensions.DependencyInjection;
 using OweMe.Identity.Server.Users.Persistence;
+using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public class UnitTest1(IntegrationTestSetup setup) : IClassFixture<IntegrationTestSetup>
+public class StartupTests(IntegrationTestSetup setup, ITestOutputHelper testOutputHelper) : IClassFixture<IntegrationTestSetup>
 {
     [Fact]
     public async Task Test_OpenIdConfig_Accessible()
     {
         // Arrange
-        await setup.StartAppAsync();
+        await setup.StartAppAsync(testOutputHelper);
         
         // Act & Assert
         var urls = setup.app!.Urls;
