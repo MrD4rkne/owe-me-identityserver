@@ -21,9 +21,14 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
         using var serviceScope = serviceScopeFactory.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
         
-        await SeedClients(context, config, cancellationToken);
-        await SeedIdentityResources(context, config, cancellationToken);
-        await SeedApiResources(context, config, cancellationToken);
+        await SeedClients(context, config);
+        await SeedIdentityResources(context, config);
+        await SeedApiResources(context, config);
+        
+        logger.LogDebug("Saving changes to the database");
+        _ = await context.SaveChangesAsync(cancellationToken);
+        
+        await SeedUsers(config.Users, cancellationToken);
     }
 
     /// <summary>
@@ -31,7 +36,7 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
     /// </summary>
     /// <param name="app"></param>
     /// <param name="users"></param>
-    internal async Task SeedUsers(IReadOnlyCollection<TestUser> users, CancellationToken cancellationToken = default)
+    private async Task SeedUsers(IReadOnlyCollection<TestUser> users, CancellationToken cancellationToken = default)
     {
         using var serviceScope = serviceScopeFactory.CreateScope();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -68,39 +73,30 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
         }
     }
     
-    private async Task SeedClients(ConfigurationDbContext context, Config config, CancellationToken cancellationToken = default)
+    private async Task SeedClients(ConfigurationDbContext context, Config config)
     {
         logger.LogDebug("Seeding Clients");
         foreach (var client in config.Clients)
         {
             context.Clients.Add(client.ToEntity());
         }
-
-        await context.SaveChangesAsync(cancellationToken);
-        logger.LogDebug("Clients seeded");
     }
     
-    private async Task SeedIdentityResources(ConfigurationDbContext context, Config config, CancellationToken cancellationToken = default)
+    private async Task SeedIdentityResources(ConfigurationDbContext context, Config config)
     {
         logger.LogDebug("Seeding Identity Resources");
         foreach (var resource in config.IdentityResources)
         {
             context.IdentityResources.Add(resource.ToEntity());
         }
-
-        await context.SaveChangesAsync(cancellationToken);
-        logger.LogDebug("Identity Resources seeded");
     }
     
-    private async Task SeedApiResources(ConfigurationDbContext context, Config config, CancellationToken cancellationToken = default)
+    private async Task SeedApiResources(ConfigurationDbContext context, Config config)
     {
         logger.LogDebug("Seeding Api Resources");
         foreach (var resource in config.ApiScopes)
         {
             context.ApiScopes.Add(resource.ToEntity());
         }
-
-        await context.SaveChangesAsync(cancellationToken);
-        logger.LogDebug("Api Resources seeded");
     }
 }
