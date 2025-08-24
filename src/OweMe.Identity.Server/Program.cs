@@ -18,10 +18,11 @@ try
     
     var config = new Config(builder.Configuration);
 
-    var app = await builder
-        .ConfigureServices(config);
-    app = await app.ConfigurePipeline(config);
-    
+    var app = builder
+        .AddIdentityServer()
+        .Build()
+        .ConfigurePipeline(config);
+
     await app.RunAsync();
 }
 catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
@@ -31,5 +32,5 @@ catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Micro
 finally
 {
     Log.Information("Shut down complete");
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
