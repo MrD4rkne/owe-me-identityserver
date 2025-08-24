@@ -110,9 +110,5 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_ORG: ${{ secrets.SONAR_ORG }}
-        working-directory: ./src
         run: |
-          $scannerPath = "$env:CACHE_DIR/scanner/dotnet-sonarscanner"
-          
-          # Run SonarScanner End securely
-          & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
+          scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
