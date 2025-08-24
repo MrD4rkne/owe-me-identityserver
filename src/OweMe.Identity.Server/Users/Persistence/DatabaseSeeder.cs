@@ -55,12 +55,12 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
 
             if (! await userManager.Users.AnyAsync(u => u.UserName != testUser.UserName, cancellationToken))
             {
-                logger.LogInformation("Creating test user {Username}", testUser.UserName);
+                logger.LogDebug("Creating test user {Username}", testUser.UserName);
                 
                 var result = await userManager.CreateAsync(testUser, user.Password);
                 if (result.Succeeded)
                 {
-                    logger.LogInformation("Test user created");
+                    logger.LogDebug("Test user created");
                 }
                 else
                 {
@@ -69,7 +69,7 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
             }
             else
             {
-                logger.LogInformation("Test user {Username} already exists", testUser.UserName);
+                logger.LogWarning("Test user {Username} already exists", testUser.UserName);
             }
         }
     }
