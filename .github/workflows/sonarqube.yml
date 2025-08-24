@@ -112,3 +112,6 @@ jobs:
           SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
           scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
+          
+          # Run SonarScanner End securely
+          "$scannerPath" end /d:sonar.token="$SONAR_TOKEN"
