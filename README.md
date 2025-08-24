@@ -31,3 +31,5 @@ App has a hosted service that can apply migrations and seed the database on appl
   }
 }
 ```
+
+Note that this only creates records in the database. It won't delete or update existing records.
