@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Domain;
 
-namespace OweMe.Identity.Server.Users.Persistence;
+namespace OweMe.Identity.Server.Data;
 
 public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
     ILogger<DatabaseSeeder> logger)
@@ -35,8 +35,6 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
     /// <summary>
     /// Seed the database with test users.
     /// </summary>
-    /// <param name="app"></param>
-    /// <param name="users"></param>
     private async Task SeedUsers(IReadOnlyCollection<TestUser> users, CancellationToken cancellationToken = default)
     {
         using var serviceScope = serviceScopeFactory.CreateScope();
