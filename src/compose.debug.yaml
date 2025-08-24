@@ -16,6 +16,7 @@
       - Serilog__Enrich__0=WithSpan
       - ConnectionStrings__DefaultConnection=Server=oweme_identity_database;Database=OweMe.Identity;Username=sa;Password=Password123;TrustServerCertificate=True;
       - Migrations__Apply=true
+      - Migrations__Seed=true
     volumes:
       - ~/.aspnet/https:/https:ro
     depends_on:
