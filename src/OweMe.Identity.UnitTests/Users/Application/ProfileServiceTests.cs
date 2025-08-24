@@ -67,7 +67,7 @@ public class ProfileServiceTests
     public async Task GetProfileDataAsync_UserNotFound_ThrowsArgumentException()
     {
         // Arrange
-        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null);
+        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null!);
         var context = new ProfileDataRequestContext(new ClaimsPrincipal(), new Client(), "test", []);
 
         // Act & Assert
@@ -93,7 +93,7 @@ public class ProfileServiceTests
     public async Task IsActiveAsync_UserNotFound_SetsIsActiveToFalse()
     {
         // Arrange
-        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null);
+        _userManagerMock.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((ApplicationUser)null!);
         var context = new IsActiveContext(new ClaimsPrincipal(), new Client(), "test");
 
         // Act
