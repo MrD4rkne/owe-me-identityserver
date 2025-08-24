@@ -3,6 +3,7 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Application;
 using OweMe.Identity.Server.Users.Domain;
@@ -52,11 +53,12 @@ internal static class HostingExtensions
             .AddAspNetIdentity<ApplicationUser>();
         
         builder.AddUsers();
+        builder.Services.AddHostedService<MigrationHostedService>();
 
         return builder;
     }
     
-    public static WebApplication ConfigurePipeline(this WebApplication app, Config config)
+    public static WebApplication ConfigurePipeline(this WebApplication app)
     { 
         app.UseSerilogRequestLogging();
         

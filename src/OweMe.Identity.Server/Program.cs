@@ -15,13 +15,11 @@ try
         .WriteTo.Console()
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
-    
-    var config = new Config(builder.Configuration);
 
     var app = builder
         .AddIdentityServer()
         .Build()
-        .ConfigurePipeline(config);
+        .ConfigurePipeline();
 
     await app.RunAsync();
 }
