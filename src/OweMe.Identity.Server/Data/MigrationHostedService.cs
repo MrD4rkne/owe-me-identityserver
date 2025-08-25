@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Persistence;
 
@@ -9,7 +10,7 @@ public class MigrationHostedService(
     IServiceProvider serviceProvider,
     ILogger<MigrationHostedService> logger,
     DatabaseSeeder seeder,
-    IConfiguration configuration)
+    IOptions<MigrationsOptions> migrationsOptions)
     : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -28,7 +29,7 @@ public class MigrationHostedService(
         
         if (ShouldSeedData())
         {
-            await SeedInitialDataAsync(cancellationToken);
+            await seeder.InitializeDatabase(cancellationToken);
         }
         else
         {
@@ -58,19 +59,13 @@ public class MigrationHostedService(
         return dbContext.Database.MigrateAsync(cancellationToken);
     }
     
-    private Task SeedInitialDataAsync(CancellationToken cancellationToken)
-    {
-        var config = new Config(configuration);
-        return seeder.InitializeDatabase(config, cancellationToken);
-    }
-    
     private bool ShouldRunMigrations()
     {
-        return configuration["Migrations:Apply"] == "true";
+        return migrationsOptions.Value.ApplyMigrations;
     }
     
     private bool ShouldSeedData()
     {
-        return configuration["Migrations:Seed"] == "true";
+        return migrationsOptions.Value.SeedData;
     }
 }

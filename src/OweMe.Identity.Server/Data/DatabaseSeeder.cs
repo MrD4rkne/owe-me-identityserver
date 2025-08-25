@@ -4,32 +4,36 @@ using Duende.IdentityServer.EntityFramework.Mappers;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Domain;
 
 namespace OweMe.Identity.Server.Data;
 
-public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
+public sealed class DatabaseSeeder(
+    IServiceScopeFactory serviceScopeFactory,
+    IOptions<IdentityConfig> identityOptions,
     ILogger<DatabaseSeeder> logger)
 {
     /// <summary>
     /// Seed the database with initial data from the configuration.
     /// </summary>
-    internal async Task InitializeDatabase(Config config, CancellationToken cancellationToken = default)
+    internal async Task InitializeDatabase(CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Seeding database with identity config");
+        logger.LogInformation("Seeding database with identity identityOptions");
         
         using var serviceScope = serviceScopeFactory.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+        var identityConfig = identityOptions.Value;
         
-        await SeedClients(context.Clients, config);
-        await SeedIdentityResources(context.IdentityResources, config);
-        await SeedApiResources(context.ApiScopes, config);
+        await SeedClients(context.Clients, identityConfig);
+        await SeedIdentityResources(context.IdentityResources, identityConfig);
+        await SeedApiResources(context.ApiScopes, identityConfig);
         
         logger.LogDebug("Saving changes to the database");
         _ = await context.SaveChangesAsync(cancellationToken);
         
-        await SeedUsers(config.Users, cancellationToken);
+        await SeedUsers(identityConfig.Users, cancellationToken);
     }
 
     /// <summary>
@@ -72,28 +76,28 @@ public sealed class DatabaseSeeder(IServiceScopeFactory serviceScopeFactory,
         }
     }
     
-    private Task SeedClients(DbSet<Client> clients, Config config)
+    private Task SeedClients(DbSet<Client> clients, IdentityConfig identityConfig)
     {
         logger.LogDebug("Seeding Clients");
-        var clientsToAdd = config.Clients
+        var clientsToAdd = identityConfig.Clients
             .Select(client => client.ToEntity())
             .Where(clientEntity => !clients.Any(c => c.ClientId == clientEntity.ClientId));
         return clients.AddRangeAsync(clientsToAdd);
     }
     
-    private Task SeedIdentityResources(DbSet<IdentityResource> identityResources, Config config)
+    private Task SeedIdentityResources(DbSet<IdentityResource> identityResources, IdentityConfig identityConfig)
     {
         logger.LogDebug("Seeding Identity Resources");
-        var identityResourcesToAdd = config.IdentityResources
+        var identityResourcesToAdd = identityConfig.IdentityResources
             .Select(resource => resource.ToEntity())
             .Where(resourceEntity => !identityResources.Any(r => r.Name == resourceEntity.Name));
         return identityResources.AddRangeAsync(identityResourcesToAdd);
     }
     
-    private Task SeedApiResources(DbSet<ApiScope> scopes, Config config)
+    private Task SeedApiResources(DbSet<ApiScope> scopes, IdentityConfig identityConfig)
     {
         logger.LogDebug("Seeding Api Resources");
-        var apiScopesToAdd = config.ApiScopes
+        var apiScopesToAdd = identityConfig.ApiScopes
             .Select(scope => scope.ToEntity())
             .Where(scopeEntity => !scopes.Any(s => s.Name == scopeEntity.Name));
         return scopes.AddRangeAsync(apiScopesToAdd);
