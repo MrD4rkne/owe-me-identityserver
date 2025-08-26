@@ -1,6 +1,8 @@
 ﻿using Duende.IdentityModel.Client;
 using Duende.IdentityServer.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Persistence;
 using Xunit.Abstractions;
 
@@ -35,16 +37,36 @@ public class StartupTests(IntegrationTestSetup setup, ITestOutputHelper testOutp
         const string clientId = "client";
         const string clientSecret = "secret";
         const string apiScope = "api1";
+
+        setup.Configure<IdentityConfig>(config =>
+        {
+            config.ApiScopes = [new ApiScope(apiScope)];
+            config.Clients =
+            [
+                new Client
+                {
+                    ClientId = clientId,
+                    ClientSecrets = [new Secret(clientSecret.Sha256())],
+                    AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                    AllowedScopes = [apiScope]
+                }
+            ];
+            config.Users =
+            [
+                new Duende.IdentityServer.Test.TestUser
+                {
+                    Username = testUserName,
+                    Password = testUserPassword,
+                    SubjectId = Guid.NewGuid().ToString()
+                }
+            ];
+        });
         
-        setup.Builder.Configuration["OweMe:Identity:ApiScopes:0:Name"] = apiScope;
-        
-        setup.Builder.Configuration["OweMe:Identity:TestUsers:0:Username"] = testUserName;
-        setup.Builder.Configuration["OweMe:Identity:TestUsers:0:Password"] = testUserPassword;
-        setup.Builder.Configuration["OweMe:Identity:TestUsers:0:SubjectId"] = Guid.NewGuid().ToString();
-        setup.Builder.Configuration["OweMe:Identity:Clients:0:ClientId"] = clientId;
-        setup.Builder.Configuration["OweMe:Identity:Clients:0:ClientSecrets:0:Value"] = clientSecret.Sha256();
-        setup.Builder.Configuration["OweMe:Identity:Clients:0:AllowedGrantTypes:0"] = "password";
-        setup.Builder.Configuration["OweMe:Identity:Clients:0:AllowedScopes:0"] = apiScope;
+        setup.Configure<MigrationsOptions>(options =>
+        {
+            options.ApplyMigrations = true;
+            options.SeedData = true;
+        });
         
         await setup.StartAppAsync(testOutputHelper);
         

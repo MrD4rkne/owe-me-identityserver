@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Duende.IdentityServer.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OweMe.Identity.Server.Setup;
@@ -26,8 +27,6 @@ public class IntegrationTestSetup : IAsyncLifetime
     {
         await _postgresContainer.StartAsync();
         Builder.Configuration["ConnectionStrings:DefaultConnection"] = _postgresContainer.GetConnectionString();
-        Builder.Configuration["Migrations:Apply"] = "true";
-        Builder.Configuration["Migrations:Seed"] = "true";
     }
     
     public Task StartAppAsync(ITestOutputHelper testOutputHelper)
@@ -43,6 +42,12 @@ public class IntegrationTestSetup : IAsyncLifetime
         app = Builder.Build()
                 .ConfigurePipeline();
         return app.StartAsync();
+    }
+    
+    public void Configure<T>(Action<T> configure)
+    where T : class
+    {
+        Builder.Services.Configure(configure);
     }
 
     public async Task DisposeAsync()
