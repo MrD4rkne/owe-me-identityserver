@@ -21,10 +21,10 @@ public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFix
     [Fact]
     public async Task Test_DiscoveryDocument_Accessible()
     {
-        // Arrange
+        // Act
         var app = await _setup.Create().StartAppAsync();
         
-        // Act & Assert
+        // Assert
         var urls = app!.Urls;
         Assert.NotEmpty(urls);
 
