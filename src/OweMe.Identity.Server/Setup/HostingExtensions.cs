@@ -55,6 +55,8 @@ public static class HostingExtensions
         builder.AddUsers();
         builder.Services.AddSingleton<DatabaseSeeder>();
         builder.Services.AddHostedService<MigrationHostedService>();
+        builder.Services.AddOptions<IdentityConfig>(IdentityConfig.SectionName);
+        builder.Services.AddOptions<MigrationsOptions>(MigrationsOptions.SectionName);
 
         return builder;
     }
