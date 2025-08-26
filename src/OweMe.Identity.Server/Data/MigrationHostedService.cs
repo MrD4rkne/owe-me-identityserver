@@ -7,7 +7,7 @@ using OweMe.Identity.Server.Users.Persistence;
 namespace OweMe.Identity.Server.Data;
 
 public class MigrationHostedService(
-    IServiceProvider serviceProvider,
+    IServiceScopeFactory serviceScopeFactory,
     ILogger<MigrationHostedService> logger,
     DatabaseSeeder seeder,
     IOptions<MigrationsOptions> migrationsOptions)
@@ -16,7 +16,7 @@ public class MigrationHostedService(
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogDebug("Starting database migration service");
-        using var scope = serviceProvider.CreateScope();
+        using var scope = serviceScopeFactory.CreateScope();
 
         if (ShouldRunMigrations())
         {

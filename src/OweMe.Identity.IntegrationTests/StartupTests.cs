@@ -1,28 +1,36 @@
 ﻿using Duende.IdentityModel.Client;
 using Duende.IdentityServer.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
+using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
-using OweMe.Identity.Server.Users.Persistence;
 using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public class StartupTests(IntegrationTestSetup setup, ITestOutputHelper testOutputHelper) : IClassFixture<IntegrationTestSetup>
+public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFixture<UnsecureHttpClientFactory>
 {
+    private readonly IntegrationTestSetup _setup;
+    private readonly UnsecureHttpClientFactory _httpClientFactory;
+    
+    public StartupTests(IntegrationTestSetup setup, UnsecureHttpClientFactory unsecureHttpClientFactory, ITestOutputHelper testOutputHelper)
+    {
+        _setup = setup;
+        _httpClientFactory = unsecureHttpClientFactory;
+        _setup.InitGlobalLogging(testOutputHelper);
+    }
+    
     [Fact]
     public async Task Test_DiscoveryDocument_Accessible()
     {
         // Arrange
-        await setup.StartAppAsync(testOutputHelper);
+        var app = await _setup.Create().StartAppAsync();
         
         // Act & Assert
-        var urls = setup.app!.Urls;
+        var urls = app!.Urls;
         Assert.NotEmpty(urls);
 
         foreach (var url in urls)
         {
-            var client = new HttpClient();
+            var client = _httpClientFactory.CreateUnsecureClient();
             var disco = await client.GetDiscoveryDocumentAsync(urls.First());
             Assert.False(disco.IsError, $"Discovery document is not accessible at {url}: {disco.Error}");
         }
@@ -37,8 +45,9 @@ public class StartupTests(IntegrationTestSetup setup, ITestOutputHelper testOutp
         const string clientId = "client";
         const string clientSecret = "secret";
         const string apiScope = "api1";
-
-        setup.Configure<IdentityConfig>(config =>
+        
+        var app = await _setup.Create()
+            .Configure<IdentityConfig>(config =>
         {
             config.ApiScopes = [new ApiScope(apiScope)];
             config.Clients =
@@ -60,20 +69,18 @@ public class StartupTests(IntegrationTestSetup setup, ITestOutputHelper testOutp
                     SubjectId = Guid.NewGuid().ToString()
                 }
             ];
-        });
-        
-        setup.Configure<MigrationsOptions>(options =>
+        })
+            .Configure<MigrationsOptions>(options =>
         {
             options.ApplyMigrations = true;
             options.SeedData = true;
-        });
+        })
+            .StartAppAsync();
         
-        await setup.StartAppAsync(testOutputHelper);
-        
-        var urls = setup.app!.Urls;
+        var urls = app.Urls;
         Assert.NotEmpty(urls);
         
-        var client = new HttpClient();
+        var client = _httpClientFactory.CreateUnsecureClient();
         var disco = await client.GetDiscoveryDocumentAsync(urls.First());
         Assert.False(disco.IsError, $"Discovery document is not accessible at {urls.First()}: {disco.Error}");
         
