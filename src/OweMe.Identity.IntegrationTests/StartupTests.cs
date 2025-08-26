@@ -15,7 +15,7 @@ public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFix
     {
         _setup = setup;
         _httpClientFactory = unsecureHttpClientFactory;
-        _setup.InitGlobalLogging(testOutputHelper);
+        IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
     }
     
     [Fact]
