@@ -4,7 +4,7 @@ using Duende.IdentityServer.Test;
 
 namespace OweMe.Identity.Server.Setup;
 
-public sealed record IdentityConfig
+public sealed class IdentityConfig
 {
     public const string SectionName = "OweMe:Identity";
 
@@ -15,9 +15,9 @@ public sealed record IdentityConfig
         new(name:"user", userClaims: [JwtClaimTypes.Email])
     ];
 
-    public required ApiScope[] ApiScopes { get; init; }
+    public ApiScope[] ApiScopes { get; set; } = [];
 
-    public required Client[] Clients { get; init; }
+    public Client[] Clients { get; set; } = [];
     
-    public required TestUser[] Users { get; init; }
+    public TestUser[] Users { get; set; } = [];
 }
