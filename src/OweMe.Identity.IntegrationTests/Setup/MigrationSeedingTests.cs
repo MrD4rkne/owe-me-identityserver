@@ -1,4 +1,6 @@
-﻿using Duende.IdentityServer.Models;
+﻿using Duende.IdentityServer.EntityFramework.DbContexts;
+using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Test;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -10,14 +12,13 @@ using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests: IClassFixture<IntegrationTestSetup>
+public sealed class MigrationSeedingTests
 {
-    private readonly IntegrationTestSetup _setup;
-    private ITestOutputHelper _testOutputHelper;
+    private readonly IntegrationTestSetup _setup = new();
+    private readonly ITestOutputHelper _testOutputHelper;
 
-    public MigrationSeedingTests(IntegrationTestSetup setup, ITestOutputHelper testOutputHelper)
+    public MigrationSeedingTests(ITestOutputHelper testOutputHelper)
     {
-        _setup = setup;
         _testOutputHelper = testOutputHelper;
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
     }
@@ -43,7 +44,7 @@ public sealed class MigrationSeedingTests: IClassFixture<IntegrationTestSetup>
         ];
         config.Users =
         [
-            new Duende.IdentityServer.Test.TestUser
+            new TestUser
             {
                 Username = testUserName,
                 Password = testUserPassword,
@@ -58,6 +59,7 @@ public sealed class MigrationSeedingTests: IClassFixture<IntegrationTestSetup>
         // Arrange
         var app = await _setup.Create()
             .Configure(configureIdentity)
+            .WithDatabase()
             .StartAppAsync();
         
         // Assert
@@ -90,6 +92,7 @@ public sealed class MigrationSeedingTests: IClassFixture<IntegrationTestSetup>
         {
             options.ApplyMigrations = true;
         })
+            .WithDatabase()
             .StartAppAsync();
         
         // Assert
@@ -100,50 +103,93 @@ public sealed class MigrationSeedingTests: IClassFixture<IntegrationTestSetup>
             .GetRequiredService<ApplicationDbContext>();
         applicationDbContext.ShouldNotBeNull();
         Assert.Empty(await applicationDbContext.Users.ToListAsync());
-        
-        var configurationDbContext = serviceProvider.GetRequiredService<Duende.IdentityServer.EntityFramework.DbContexts.ConfigurationDbContext>();
+
+        var configurationDbContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
         configurationDbContext.ShouldNotBeNull();
         
         (await configurationDbContext.Clients.ToListAsync()).ShouldBeEmpty("Clients shouldn't be seeded");
         (await configurationDbContext.ApiScopes.ToListAsync()).ShouldBeEmpty("ApiScopes shouldn't be seeded");
         (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty("IdentityResources shouldn't be seeded");
     }
-    
-    // [Fact]
-    // public async Task Seeding_ShouldRun_EvenWithoutMigrations()
-    // {
-    //     // Arrange
-    //     // CreateDb
-    //     var migrationsHS = new MigrationHostedService(
-    //     
-    //     setup.Configure(configureIdentity);
-    //     setup.Configure<MigrationsOptions>(options =>
-    //     {
-    //         options.SeedData = true;
-    //     });
-    //     
-    //     // Act
-    //     await setup.StartAppAsync(testOutputHelper);
-    //     
-    //     // Assert
-    //     var serviceProvider = setup.app!.Services.CreateScope().ServiceProvider;
-    //     serviceProvider.ShouldNotBeNull();
-    //     
-    //     var applicationDbContext = serviceProvider
-    //         .GetRequiredService<ApplicationDbContext>();
-    //     applicationDbContext.ShouldNotBeNull();
-    //     Assert.Empty(await applicationDbContext.Users.ToListAsync());
-    //     
-    //     var configurationDbContext = serviceProvider.GetRequiredService<Duende.IdentityServer.EntityFramework.DbContexts.ConfigurationDbContext>();
-    //     configurationDbContext.ShouldNotBeNull();
-    //     
-    //     (await configurationDbContext.Clients.ToListAsync()).ShouldBeEmpty("Clients shouldn't be seeded");
-    //     (await configurationDbContext.ApiScopes.ToListAsync()).ShouldBeEmpty("ApiScopes shouldn't be seeded");
-    //     (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty("IdentityResources shouldn't be seeded");
-    // }
-    //
-    // private async Task CreateDatabaseAsync()
-    // {
-    //     
-    // }
+
+    [Fact]
+    public async Task Seeding_ShouldRun_EvenWithoutMigrations()
+    {
+        // Arrange
+        var postgresContainer = App.CreatePostgresSqlContainer();
+        await postgresContainer.StartAsync();
+
+        _ = await _setup.Create()
+            .WithConnectionString(postgresContainer.GetConnectionString())
+            .StartAppAsync();
+
+        // Assert
+        var app = await _setup.Create()
+            .Configure(configureIdentity)
+            .Configure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = false;
+                options.SeedData = true;
+            })
+            .StartAppAsync();
+
+        var serviceProvider = app.Services.CreateScope().ServiceProvider;
+        AssertSeedingWorked(serviceProvider);
+    }
+
+    [Fact]
+    public async Task SeedingAndMigrations_ShouldRun_WhenEnabled()
+    {
+        // Arrange
+        var app = await _setup.Create()
+            .Configure(configureIdentity)
+            .Configure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = true;
+                options.SeedData = true;
+            })
+            .WithDatabase()
+            .StartAppAsync();
+
+        // Assert
+        var serviceProvider = app.Services.CreateScope().ServiceProvider;
+        AssertSeedingWorked(serviceProvider);
+    }
+
+    private static void AssertSeedingWorked(IServiceProvider serviceProvider)
+    {
+        var applicationDbContext = serviceProvider
+            .GetRequiredService<ApplicationDbContext>();
+        applicationDbContext.ShouldNotBeNull();
+        var users = applicationDbContext.Users.ToListAsync().Result;
+        users.Count.ShouldBe(1);
+        Assert.Equal(testUserName, users[0].UserName);
+
+        var configurationDbContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
+        configurationDbContext.ShouldNotBeNull();
+
+        var clients = configurationDbContext.Clients
+            .Include(c => c.AllowedGrantTypes)
+            .Include(c => c.ClientSecrets)
+            .Include(c => c.AllowedScopes)
+            .ToListAsync().Result;
+        clients.Count.ShouldBe(1);
+        clients[0].ClientId.ShouldBe(clientId);
+        clients[0].ClientSecrets.ShouldNotBeEmpty();
+
+        clients[0].AllowedGrantTypes.Count.ShouldBe(GrantTypes.ResourceOwnerPassword.Count);
+        clients[0].AllowedGrantTypes.ShouldAllBe(grant => GrantTypes.ResourceOwnerPassword.Contains(grant.GrantType));
+
+        clients[0].AllowedScopes.Count.ShouldBe(1);
+        clients[0].AllowedScopes[0].Scope.ShouldBe(apiScope);
+
+        var apiScopes = configurationDbContext.ApiScopes.ToListAsync().Result;
+        apiScopes.Count.ShouldBe(1);
+        Assert.Equal(apiScope, apiScopes[0].Name);
+
+        var identityResources = configurationDbContext.IdentityResources.ToListAsync().Result;
+        identityResources.Count.ShouldBe(2); // OpenId and Profile
+        identityResources.ShouldContain(resource => resource.Name == "openid");
+        identityResources.ShouldContain(resource => resource.Name == "profile");
+    }
 }

@@ -1,19 +1,19 @@
 ﻿using Duende.IdentityModel.Client;
 using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Test;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
 using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFixture<UnsecureHttpClientFactory>
+public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
 {
-    private readonly IntegrationTestSetup _setup;
+    private readonly IntegrationTestSetup _setup = new();
     private readonly UnsecureHttpClientFactory _httpClientFactory;
-    
-    public StartupTests(IntegrationTestSetup setup, UnsecureHttpClientFactory unsecureHttpClientFactory, ITestOutputHelper testOutputHelper)
+
+    public StartupTests(UnsecureHttpClientFactory unsecureHttpClientFactory, ITestOutputHelper testOutputHelper)
     {
-        _setup = setup;
         _httpClientFactory = unsecureHttpClientFactory;
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
     }
@@ -22,7 +22,14 @@ public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFix
     public async Task Test_DiscoveryDocument_Accessible()
     {
         // Act
-        var app = await _setup.Create().StartAppAsync();
+        var app = await _setup.Create()
+            .Configure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = true;
+                options.SeedData = false;
+            })
+            .WithDatabase()
+            .StartAppAsync();
         
         // Assert
         var urls = app!.Urls;
@@ -62,7 +69,7 @@ public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFix
             ];
             config.Users =
             [
-                new Duende.IdentityServer.Test.TestUser
+                new TestUser
                 {
                     Username = testUserName,
                     Password = testUserPassword,
@@ -75,6 +82,7 @@ public sealed class StartupTests: IClassFixture<IntegrationTestSetup>, IClassFix
             options.ApplyMigrations = true;
             options.SeedData = true;
         })
+            .WithDatabase()
             .StartAppAsync();
         
         var urls = app.Urls;
