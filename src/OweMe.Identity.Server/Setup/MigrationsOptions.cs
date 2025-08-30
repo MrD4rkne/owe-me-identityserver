@@ -2,7 +2,7 @@
 
 public sealed class MigrationsOptions
 {
-    public const string SectionName = "OweMe:Identity:Migrations";
+    public const string SectionName = "Migrations";
     
     public bool ApplyMigrations { get; set; } = false;
     
