@@ -119,7 +119,13 @@ public sealed class MigrationSeedingTests
         var postgresContainer = App.CreatePostgresSqlContainer();
         await postgresContainer.StartAsync();
 
+        // Let's create the database with migrations, but without seeding
         _ = await _setup.Create()
+            .Configure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = true;
+                options.SeedData = false;
+            })
             .WithConnectionString(postgresContainer.GetConnectionString())
             .StartAppAsync();
 
@@ -131,6 +137,7 @@ public sealed class MigrationSeedingTests
                 options.ApplyMigrations = false;
                 options.SeedData = true;
             })
+            .WithConnectionString(postgresContainer.GetConnectionString())
             .StartAppAsync();
 
         var serviceProvider = app.Services.CreateScope().ServiceProvider;
@@ -188,8 +195,9 @@ public sealed class MigrationSeedingTests
         Assert.Equal(apiScope, apiScopes[0].Name);
 
         var identityResources = configurationDbContext.IdentityResources.ToListAsync().Result;
-        identityResources.Count.ShouldBe(2); // OpenId and Profile
+        identityResources.Count.ShouldBe(3);
         identityResources.ShouldContain(resource => resource.Name == "openid");
         identityResources.ShouldContain(resource => resource.Name == "profile");
+        identityResources.ShouldContain(resource => resource.Name == "user");
     }
 }
