@@ -20,6 +20,8 @@
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
 
 		<PackageReference Include="Serilog.AspNetCore" />
+
+        <PackageReference Include="Serilog.Sinks.ApplicationInsights"/>
 	</ItemGroup>
 
 	<ItemGroup>
