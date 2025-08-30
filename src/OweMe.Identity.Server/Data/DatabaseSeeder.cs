@@ -55,7 +55,7 @@ public sealed class DatabaseSeeder(
                 EmailConfirmed = true
             };
 
-            if (! await userManager.Users.AnyAsync(u => u.UserName != testUser.UserName, cancellationToken))
+            if (! await userManager.Users.AnyAsync(u => u.UserName == testUser.UserName, cancellationToken))
             {
                 logger.LogDebug("Creating test user {Username}", testUser.UserName);
                 
