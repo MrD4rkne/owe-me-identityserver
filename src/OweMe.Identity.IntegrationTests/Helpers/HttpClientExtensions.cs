@@ -1,8 +1,8 @@
 ﻿namespace OweMe.Identity.IntegrationTests.Helpers;
 
-public class UnsecureHttpClientFactory
+public static class UnsecureHttpClientFactory
 {
-    public HttpClient CreateUnsecureClient()
+    public static HttpClient CreateUnsecureClient()
     {
         var handler = new HttpClientHandler
         {
