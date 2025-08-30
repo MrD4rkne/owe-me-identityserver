@@ -20,7 +20,7 @@ public sealed class DatabaseSeeder(
     /// </summary>
     internal async Task InitializeDatabase(CancellationToken cancellationToken = default)
     {
-        logger.LogInformation("Seeding database with identity identityOptions");
+        logger.LogInformation("Seeding database with identity configuration");
         
         using var serviceScope = serviceScopeFactory.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
