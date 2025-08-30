@@ -3,6 +3,8 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OweMe.Identity.Server.Data;
+using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Application;
 using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Persistence;
@@ -11,18 +13,13 @@ using Serilog;
 namespace OweMe.Identity.Server.Setup;
 
 [ExcludeFromCodeCoverage]
-internal static class HostingExtensions
+public static class HostingExtensions
 {
-    public static async Task<WebApplication> ConfigureServices(this WebApplicationBuilder builder, Config config)
+    public static WebApplicationBuilder AddIdentityServer(this WebApplicationBuilder builder)
     {
         builder.Services.AddSerilog();
         
         builder.Services.AddRazorPages();
-        
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-        });
         
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -55,40 +52,22 @@ internal static class HostingExtensions
             })
             .AddAspNetIdentity<ApplicationUser>();
         
-        builder.Services.AddTransient<IProfileService, ProfileService>();
-        
-        if(builder.Configuration["Migrations:Apply"] == "true")
-        {
-            Log.Information("Applying migrations");
-            await builder.Services.ApplyMigrations<ApplicationDbContext>();
-            await builder.Services.ApplyMigrations<ConfigurationDbContext>();
-            await builder.Services.ApplyMigrations<PersistedGrantDbContext>();
-        }
+        builder.AddUsers();
+        builder.Services.AddSingleton<DatabaseSeeder>();
+        builder.Services.AddHostedService<MigrationHostedService>();
+        builder.Services.AddOptions<IdentityConfig>().BindConfiguration(IdentityConfig.SectionName);
+        builder.Services.AddOptions<MigrationsOptions>().BindConfiguration(MigrationsOptions.SectionName);
 
-        return builder.Build();
+        return builder;
     }
     
-    public static async Task ApplyMigrations<TContext>(this IServiceCollection services)
-    where TContext : DbContext
-    {
-        Log.Information("Applying migrations for {Context}", typeof(TContext).Name);
-        
-        using var scope = services.BuildServiceProvider().CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<TContext>();
-        await dbContext.Database.MigrateAsync();
-    }
-    
-    public static async Task<WebApplication> ConfigurePipeline(this WebApplication app, Config config)
+    public static WebApplication ConfigurePipeline(this WebApplication app)
     { 
         app.UseSerilogRequestLogging();
         
-        await SeedData.InitializeDatabase(app, config);
-    
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-            
-            await SeedData.SeedUsers(app, config.Users);
         }
         else
         {
