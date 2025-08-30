@@ -4,6 +4,7 @@ using Duende.IdentityServer.Test;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Persistence;
 using Shouldly;
@@ -14,7 +15,6 @@ namespace OweMe.Identity.IntegrationTests.Setup;
 
 public sealed class MigrationSeedingTests
 {
-    private readonly IntegrationTestSetup _setup = new();
     private readonly ITestOutputHelper _testOutputHelper;
 
     public MigrationSeedingTests(ITestOutputHelper testOutputHelper)
@@ -57,7 +57,7 @@ public sealed class MigrationSeedingTests
     public async Task Migration_ShouldNotRun_ByDefault()
     {
         // Arrange
-        var app = await _setup.Create()
+        var app = await IntegrationTestSetup.Create()
             .Configure(configureIdentity)
             .WithDatabase()
             .StartAppAsync();
@@ -86,7 +86,7 @@ public sealed class MigrationSeedingTests
     public async Task Seeding_ShouldNotRun_ByDefault()
     {
         // Arrange
-        var app = await _setup.Create()
+        var app = await IntegrationTestSetup.Create()
             .Configure(configureIdentity)
             .Configure<MigrationsOptions>(options =>
         {
@@ -116,11 +116,11 @@ public sealed class MigrationSeedingTests
     public async Task Seeding_ShouldRun_EvenWithoutMigrations()
     {
         // Arrange
-        var postgresContainer = App.CreatePostgresSqlContainer();
+        var postgresContainer = AppBuilder.CreatePostgresSqlContainer();
         await postgresContainer.StartAsync();
 
         // Let's create the database with migrations, but without seeding
-        _ = await _setup.Create()
+        _ = await IntegrationTestSetup.Create()
             .Configure<MigrationsOptions>(options =>
             {
                 options.ApplyMigrations = true;
@@ -130,7 +130,7 @@ public sealed class MigrationSeedingTests
             .StartAppAsync();
 
         // Assert
-        var app = await _setup.Create()
+        var app = await IntegrationTestSetup.Create()
             .Configure(configureIdentity)
             .Configure<MigrationsOptions>(options =>
             {
@@ -148,7 +148,7 @@ public sealed class MigrationSeedingTests
     public async Task SeedingAndMigrations_ShouldRun_WhenEnabled()
     {
         // Arrange
-        var app = await _setup.Create()
+        var app = await IntegrationTestSetup.Create()
             .Configure(configureIdentity)
             .Configure<MigrationsOptions>(options =>
             {

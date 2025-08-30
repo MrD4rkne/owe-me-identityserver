@@ -9,7 +9,6 @@ namespace OweMe.Identity.IntegrationTests;
 
 public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
 {
-    private readonly IntegrationTestSetup _setup = new();
     private readonly UnsecureHttpClientFactory _httpClientFactory;
 
     public StartupTests(UnsecureHttpClientFactory unsecureHttpClientFactory, ITestOutputHelper testOutputHelper)
@@ -22,7 +21,7 @@ public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
     public async Task Test_DiscoveryDocument_Accessible()
     {
         // Act
-        var app = await _setup.Create()
+        var app = await IntegrationTestSetup.Create()
             .Configure<MigrationsOptions>(options =>
             {
                 options.ApplyMigrations = true;
@@ -52,8 +51,8 @@ public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
         const string clientId = "client";
         const string clientSecret = "secret";
         const string apiScope = "api1";
-        
-        var app = await _setup.Create()
+
+        var app = await IntegrationTestSetup.Create()
             .Configure<IdentityConfig>(config =>
         {
             config.ApiScopes = [new ApiScope(apiScope)];
