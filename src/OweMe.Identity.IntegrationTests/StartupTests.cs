@@ -7,13 +7,10 @@ using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
+public sealed class StartupTests
 {
-    private readonly UnsecureHttpClientFactory _httpClientFactory;
-
-    public StartupTests(UnsecureHttpClientFactory unsecureHttpClientFactory, ITestOutputHelper testOutputHelper)
+    public StartupTests(ITestOutputHelper testOutputHelper)
     {
-        _httpClientFactory = unsecureHttpClientFactory;
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
     }
     
@@ -36,7 +33,7 @@ public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
 
         foreach (var url in urls)
         {
-            var client = _httpClientFactory.CreateUnsecureClient();
+            var client = UnsecureHttpClientFactory.CreateUnsecureClient();
             var disco = await client.GetDiscoveryDocumentAsync(urls.First());
             Assert.False(disco.IsError, $"Discovery document is not accessible at {url}: {disco.Error}");
         }
@@ -86,8 +83,8 @@ public sealed class StartupTests : IClassFixture<UnsecureHttpClientFactory>
         
         var urls = app.Urls;
         Assert.NotEmpty(urls);
-        
-        var client = _httpClientFactory.CreateUnsecureClient();
+
+        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
         var disco = await client.GetDiscoveryDocumentAsync(urls.First());
         Assert.False(disco.IsError, $"Discovery document is not accessible at {urls.First()}: {disco.Error}");
         
