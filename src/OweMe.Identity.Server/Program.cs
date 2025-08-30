@@ -12,24 +12,23 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Host.UseSerilog((ctx, lc) => lc
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+        .WriteTo.Console()
         .Enrich.FromLogContext()
         .ReadFrom.Configuration(ctx.Configuration));
-    
-    var config = new Config(builder.Configuration);
 
-    var app = await builder
-        .ConfigureServices(config);
-    app = await app.ConfigurePipeline(config);
-    
+    var app = builder
+        .AddIdentityServer()
+        .Build()
+        .ConfigurePipeline();
+
     await app.RunAsync();
 }
 catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
 {
-    Log.Fatal(ex, "Unhandled exception");
+    Log.Fatal(ex, "Unhandled exception during application startup");
 }
 finally
 {
     Log.Information("Shut down complete");
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
