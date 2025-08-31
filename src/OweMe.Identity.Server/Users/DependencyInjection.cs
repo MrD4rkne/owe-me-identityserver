@@ -1,7 +1,9 @@
 ﻿using Duende.IdentityServer.Services;
 using Microsoft.EntityFrameworkCore;
 using OweMe.Identity.Server.Users.Application;
+using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Persistence;
+using OweMe.Identity.Server.Users.Presentation;
 
 namespace OweMe.Identity.Server.Users;
 
@@ -17,5 +19,12 @@ internal static class DependencyInjection
      
         // Application
         builder.Services.AddTransient<IProfileService, ProfileService>();
+        builder.Services.AddTransient<IUserService, UserService>();
+    }
+
+    public static void UseUsers(this WebApplication app)
+    {
+        // Endpoints
+        app.MapGetUserEndpoint();
     }
 }

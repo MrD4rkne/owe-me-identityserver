@@ -31,13 +31,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="..\.dockerignore">
-	    <Link>.dockerignore</Link>
-	  </Content>
+        <Folder Include="Data\Migrations\"/>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Data\Migrations\" />
-	  <Folder Include="Users\Presentation\" />
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
 	</ItemGroup>
 </Project>

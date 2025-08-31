@@ -1,11 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using Duende.IdentityServer.EntityFramework.DbContexts;
-using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
-using OweMe.Identity.Server.Users.Application;
 using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Persistence;
 using Serilog;
@@ -77,12 +74,13 @@ public static class HostingExtensions
         
         app.UseStaticFiles();
         app.UseRouting();
-            
+
+        app.UseUsers();
         app.UseIdentityServer();
         
         app.UseAuthorization();
         app.MapRazorPages().RequireAuthorization();
-
+        
         return app;
     }
 }
