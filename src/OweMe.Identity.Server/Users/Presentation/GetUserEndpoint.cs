@@ -5,12 +5,23 @@ namespace OweMe.Identity.Server.Users.Presentation;
 
 public static class GetUserEndpoint
 {
+    private const string PolicyName = "UserLookup";
+
+    // public static void RegisterPolicies(this AuthorizationOptions options)
+    // {
+    //     options.AddPolicy(PolicyName, policy =>
+    //     {
+    //         policy.RequireClaim("scope", "users");
+    //     });
+    // }
+    //
     public static void MapGetUserEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapGet("/users/{userId}", GetUserById)
             .WithTags("Users")
             .Produces<User>()
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(IdentityServerConstants.LocalApi.PolicyName);
     }
 
     public static async Task<IResult> GetUserById(string userId, [FromServices] IUserService userService,

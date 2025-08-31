@@ -1,11 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Persistence;
-using Serilog;
 
 namespace OweMe.Identity.Server.Setup;
 
@@ -55,6 +53,10 @@ public static class HostingExtensions
         builder.Services.AddOptions<IdentityConfig>().BindConfiguration(IdentityConfig.SectionName);
         builder.Services.AddOptions<MigrationsOptions>().BindConfiguration(MigrationsOptions.SectionName);
 
+
+        builder.Services.AddLocalApiAuthentication();
+        //builder.Services.AddAuthorization(opt => GetUserEndpoint.RegisterPolicies(opt));
+
         return builder;
     }
     
@@ -77,7 +79,8 @@ public static class HostingExtensions
 
         app.UseUsers();
         app.UseIdentityServer();
-        
+
+        app.UseAuthentication();
         app.UseAuthorization();
         app.MapRazorPages().RequireAuthorization();
         
