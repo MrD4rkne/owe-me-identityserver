@@ -1,12 +1,16 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Entities;
 using Duende.IdentityServer.EntityFramework.Mappers;
+using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Domain;
+using Client = Duende.IdentityServer.EntityFramework.Entities.Client;
+using IdentityResource = Duende.IdentityServer.EntityFramework.Entities.IdentityResource;
+using ApiScope = Duende.IdentityServer.EntityFramework.Entities.ApiScope;
 
 namespace OweMe.Identity.Server.Data;
 
@@ -82,7 +86,21 @@ public sealed class DatabaseSeeder(
         var clientsToAdd = identityConfig.Clients
             .Select(client => client.ToEntity())
             .Where(clientEntity => !clients.Any(c => c.ClientId == clientEntity.ClientId));
-        return clients.AddRangeAsync(clientsToAdd);
+
+        var clientsWithSecrets = clientsToAdd
+            .Select(client =>
+            {
+                client.ClientSecrets = client.ClientSecrets
+                    .Select(secret => new ClientSecret
+                    {
+                        Type = secret.Type,
+                        Value = secret.Value.Sha256(),
+                        Description = secret.Description,
+                        Expiration = secret.Expiration
+                    }).ToList();
+                return client;
+            }).ToList();
+        return clients.AddRangeAsync(clientsWithSecrets);
     }
     
     private Task SeedIdentityResources(DbSet<IdentityResource> identityResources, IdentityConfig identityConfig)
