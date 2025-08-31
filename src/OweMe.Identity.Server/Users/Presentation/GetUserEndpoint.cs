@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Duende.IdentityServer;
+using Microsoft.AspNetCore.Mvc;
 using OweMe.Identity.Server.Users.Domain;
 
 namespace OweMe.Identity.Server.Users.Presentation;
