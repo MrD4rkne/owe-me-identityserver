@@ -6,16 +6,6 @@ namespace OweMe.Identity.Server.Users.Presentation;
 
 public static class GetUserEndpoint
 {
-    private const string PolicyName = "UserLookup";
-
-    // public static void RegisterPolicies(this AuthorizationOptions options)
-    // {
-    //     options.AddPolicy(PolicyName, policy =>
-    //     {
-    //         policy.RequireClaim("scope", "users");
-    //     });
-    // }
-    //
     public static void MapGetUserEndpoint(this IEndpointRouteBuilder app)
     {
         app.MapGet("/users/{userId}", GetUserById)

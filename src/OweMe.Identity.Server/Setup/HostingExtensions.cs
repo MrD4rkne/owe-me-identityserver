@@ -54,10 +54,8 @@ public static class HostingExtensions
         builder.Services.AddHostedService<MigrationHostedService>();
         builder.Services.AddOptions<IdentityConfig>().BindConfiguration(IdentityConfig.SectionName);
         builder.Services.AddOptions<MigrationsOptions>().BindConfiguration(MigrationsOptions.SectionName);
-
-
+        
         builder.Services.AddLocalApiAuthentication();
-        //builder.Services.AddAuthorization(opt => GetUserEndpoint.RegisterPolicies(opt));
 
         return builder;
     }
