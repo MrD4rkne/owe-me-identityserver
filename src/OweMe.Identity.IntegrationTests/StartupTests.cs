@@ -87,7 +87,7 @@ public sealed class StartupTests
         var client = UnsecureHttpClientFactory.CreateUnsecureClient();
         
         // Act
-        string token = await PasswordTokenHelper.GetTokenAsync(client, urls.First(), testUserName, testUserPassword,
+        string token = await TokenHelper.GetTokenAsync(client, urls.First(), testUserName, testUserPassword,
             clientId, clientSecret, apiScope);
         Assert.NotNull(token);
     }
