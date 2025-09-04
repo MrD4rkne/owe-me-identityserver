@@ -4,6 +4,7 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Builder;
+using Newtonsoft.Json.Linq;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
 using Shouldly;
@@ -20,11 +21,11 @@ public class GetUserEndpointTests : IAsyncLifetime
     private const string apiScope = "api1";
     private const string localApiClientId = "local_api_client";
     private const string localApiClientSecret = "local_api_secret";
-
-    private readonly Guid userId = Guid.NewGuid();
+    
     private readonly Guid nonExistentUserId = Guid.NewGuid();
 
-    private readonly Action<IdentityConfig> _configureIdentityConfig = config =>
+    private static readonly Action<IdentityConfig> _configureIdentityConfig =
+        config =>
     {
         config.ApiScopes =
         [
@@ -38,7 +39,7 @@ public class GetUserEndpointTests : IAsyncLifetime
                 ClientId = clientId,
                 ClientSecrets = [new Secret(clientSecret)],
                 AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                AllowedScopes = [apiScope]
+                AllowedScopes = [apiScope, "openid", "profile"]
             },
             new Client
             {
@@ -53,8 +54,7 @@ public class GetUserEndpointTests : IAsyncLifetime
             new TestUser
             {
                 Username = testUserName,
-                Password = testUserPassword,
-                SubjectId = Guid.NewGuid().ToString()
+                Password = testUserPassword
             }
         ];
     };
@@ -65,7 +65,8 @@ public class GetUserEndpointTests : IAsyncLifetime
         options.SeedData = true;
     };
 
-    private readonly WebApplication _app = null!;
+    private WebApplication _app = null!;
+    private Guid existingUserId = Guid.NewGuid();
 
     public GetUserEndpointTests(ITestOutputHelper testOutputHelper)
     {
@@ -76,13 +77,7 @@ public class GetUserEndpointTests : IAsyncLifetime
     public async Task For_Client_WithoutProperScope_Should_Return_Unauthorized()
     {
         // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(_configureIdentityConfig)
-            .Configure(_configureMigrationsOptions)
-            .WithDatabase()
-            .StartAppAsync();
-
-        var urls = app.Urls;
+        var urls = _app.Urls;
         urls.ShouldNotBeEmpty();
 
         var client = UnsecureHttpClientFactory.CreateUnsecureClient();
@@ -91,7 +86,7 @@ public class GetUserEndpointTests : IAsyncLifetime
         client.SetBearerToken(token);
 
         // Act
-        var response = await client.GetAsync($"{urls.First()}/users/{userId}");
+        var response = await client.GetAsync($"{urls.First()}/users/{existingUserId}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -101,13 +96,7 @@ public class GetUserEndpointTests : IAsyncLifetime
     public async Task For_ClientWithProperScope_ShouldReturnResult()
     {
         // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(_configureIdentityConfig)
-            .Configure(_configureMigrationsOptions)
-            .WithDatabase()
-            .StartAppAsync();
-
-        var urls = app.Urls;
+        var urls = _app.Urls;
         urls.ShouldNotBeEmpty();
 
         var client = UnsecureHttpClientFactory.CreateUnsecureClient();
@@ -116,20 +105,71 @@ public class GetUserEndpointTests : IAsyncLifetime
         client.SetBearerToken(token);
 
         // Act
-        var response = await client.GetAsync($"{urls.First()}/users/{userId}");
+        var response = await client.GetAsync($"{urls.First()}/users/{existingUserId}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         string content = await response.Content.ReadAsStringAsync();
+
+        var obj = JObject.Parse(content);
+        obj.ShouldNotBeNull();
+        obj["sub"]?.Value<string>()?.ShouldBe(existingUserId.ToString());
+        obj["email"]?.Value<string>()?.ShouldBe(testUserName);
+        obj["userName"]?.Value<string>()?.ShouldBe(testUserName);
+        obj.Properties().Count().ShouldBe(3, "Response should only contain sub, email and userName");
     }
 
-    public Task InitializeAsync()
+    [Fact]
+    public async Task For_NonExistingUser_Should_ReturnNotFound()
     {
-        return IntegrationTestSetup.Create()
+        // Arrange
+        var urls = _app.Urls;
+        urls.ShouldNotBeEmpty();
+
+        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
+        string token = await TokenHelper.GetTokenAsync(client, urls.First(), localApiClientId, localApiClientSecret,
+            IdentityServerConstants.LocalApi.ScopeName);
+        client.SetBearerToken(token);
+
+        // Act
+        var response = await client.GetAsync($"{urls.First()}/users/{nonExistentUserId}");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+    }
+
+    private static async Task<Guid> GetUser(string url, string username, string password)
+    {
+        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
+        string token = await TokenHelper.GetTokenAsync(client, url, username, password, clientId, clientSecret,
+            $"{apiScope} openid profile");
+        client.SetBearerToken(token);
+
+        // Get IS user info
+        UserInfoRequest userInfoRequest = new()
+        {
+            Address = $"{url}/connect/userinfo",
+            Token = token
+        };
+
+        var userInfoResponse = await client.GetUserInfoAsync(userInfoRequest);
+        userInfoResponse.IsError.ShouldBeFalse();
+        userInfoResponse.Claims.ShouldNotBeEmpty();
+
+        var subClaim = userInfoResponse.Claims.FirstOrDefault(c => c.Type == "sub");
+        subClaim.ShouldNotBeNull();
+        return Guid.Parse(subClaim.Value);
+    }
+
+    public async Task InitializeAsync()
+    {
+        _app = await IntegrationTestSetup.Create()
             .Configure(_configureIdentityConfig)
             .Configure(_configureMigrationsOptions)
             .WithDatabase()
             .StartAppAsync();
+
+        existingUserId = await GetUser(_app.Urls.First(), testUserName, testUserPassword);
     }
 
     public Task DisposeAsync()
