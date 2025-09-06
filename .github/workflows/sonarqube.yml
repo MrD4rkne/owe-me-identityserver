@@ -106,9 +106,7 @@ jobs:
       - name: Test with coverage
         id: test
         run: |
-          dotnet-coverage collect --output "coverage.xml" --output-format "xml" -- \
-            dotnet test "$GITHUB_WORKSPACE/OweMe.Identity.sln" \
-            --no-restore --no-build --verbosity normal
+          dotnet-coverage collect "dotnet test --no-restore --no-build --verbosity normal" -f xml -o "coverage.xml"
 
       - name: List files for debugging
         run: |
