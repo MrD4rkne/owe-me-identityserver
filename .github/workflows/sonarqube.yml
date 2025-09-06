@@ -109,7 +109,7 @@ jobs:
           dotCover cover \
             --Output=coverage.dcvr \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
-            -- dotnet test "${{ env.SLN_FILE }}" --configuration Release --no-restore --no-build --verbosity normal
+            -- dotnet test --configuration Release --no-restore --no-build
 
       - name: Report coverage
         if: always()
