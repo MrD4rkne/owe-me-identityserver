@@ -55,12 +55,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
-
-      - name: Install required packages
-        run: |
-          # Install dependencies required for dotnet-coverage
-          sudo apt-get update
-          sudo apt-get install -y libxml2 libc6
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
