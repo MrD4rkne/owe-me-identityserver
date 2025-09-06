@@ -86,7 +86,7 @@ jobs:
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /d:sonar.scanner.scanAll=false \
             /d:sonar.qualitygate.wait=true \
-            /d:sonar.qualitygate.timeout=300
+            /d:sonar.qualitygate.timeout=300 \
             /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
 
       - name: Dotnet restore
