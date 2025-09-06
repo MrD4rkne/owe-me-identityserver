@@ -68,7 +68,7 @@ public class GetUserEndpointTests
     [InlineData(null, "notnull@owe.me")]
     [InlineData("not null", null)]
     [InlineData(null, null)]
-    public async Task ForExistentUser_WithNullUserNameOrEmail_ReturnsNotFound(string? userName, string? email)
+    public async Task ForExistingUser_WithNullUserNameOrEmail_ReturnsNotFound(string? userName, string? email)
     {
         // Arrange
         var applicationUser = new ApplicationUser
