@@ -33,7 +33,7 @@ public class GetUserEndpointTests
     }
 
     [Fact]
-    public async Task ForExistentUser_ReturnsUser()
+    public async Task ForExistingUser_ReturnsUser()
     {
         // Arrange
         const string userName = "testuser";
