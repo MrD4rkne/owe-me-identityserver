@@ -82,7 +82,7 @@ jobs:
             /o:"$SONAR_ORG" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html \
+            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.xml \
             /d:sonar.scanner.scanAll=false \
             /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300
@@ -100,8 +100,7 @@ jobs:
         run: |
           # Run tests under coverage producing a snapshot
           dotCover cover \
-            --reportType=HTML \
-            --Output="$GITHUB_WORKSPACE/dotCover.Output.html" \
+            --xml-report-output "$GITHUB_WORKSPACE/dotCover.Output.xml" \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
             -- /usr/share/dotnet/dotnet test "$GITHUB_WORKSPACE/OweMe.Identity.sln" --configuration Release --no-restore --no-build --verbosity normal
 
