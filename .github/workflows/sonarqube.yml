@@ -96,6 +96,7 @@ jobs:
           dotnet build --configuration Release --no-restore
           
       - name: Test with coverage
+        id: test
         run: |
           # Run tests under coverage producing a snapshot
           dotCover cover \
@@ -104,11 +105,9 @@ jobs:
             -- /usr/share/dotnet/dotnet test "$GITHUB_WORKSPACE/OweMe.Identity.sln" --configuration Release --no-restore --no-build --verbosity normal
 
       - name: Report coverage
-        if: always()
         run: |
-          # Convert snapshot to XML (for Sonar) and HTML (optional human view)
-          dotCover report /Source=coverage.dcvr /ReportType=DetailedXML /Output=coverage.xml
-          dotCover report /Source=coverage.dcvr /ReportType=HTML /Output=coverage.html
+          dotCover report --snapshot-source coverage.dcvr --xml-report-output coverage.xml
+          dotCover report --snapshot-source coverage.dcvr /ReportType=HTML /Output=coverage.html
 
       - name: SonarQube End
         env:
