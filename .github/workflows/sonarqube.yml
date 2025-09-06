@@ -56,6 +56,12 @@ jobs:
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
 
+      - name: Install required packages
+        run: |
+          # Install dependencies required for dotnet-coverage
+          sudo apt-get update
+          sudo apt-get install -y libxml2 libc6
+
       - name: Install dotnet-coverage tool
         run: |
           dotnet tool install --global dotnet-coverage
@@ -95,12 +101,14 @@ jobs:
           
       - name: Build
         run: |
-          dotnet build --configuration Release --no-restore
+          dotnet build --configuration Release
           
       - name: Test with coverage
         id: test
         run: |
-          dotnet-coverage collect "dotnet test --no-restore --no-build --verbosity normal" -f xml -o "coverage.xml"
+          dotnet-coverage collect --output "coverage.xml" --output-format "xml" -- \
+            dotnet test "$GITHUB_WORKSPACE/OweMe.Identity.sln" \
+            --no-restore --no-build --verbosity normal
 
       - name: List files for debugging
         run: |
