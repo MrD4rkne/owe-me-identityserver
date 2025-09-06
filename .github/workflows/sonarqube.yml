@@ -83,9 +83,7 @@ jobs:
             /o:"$SONAR_ORG" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.scanner.scanAll=false \
-            /d:sonar.qualitygate.wait=true \
-            /d:sonar.qualitygate.timeout=300
+            /d:sonar.scanner.scanAll=false
 
       - name: Dotnet restore
         run: |
