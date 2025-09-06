@@ -1,6 +1,4 @@
-﻿using Duende.IdentityModel.Client;
-
-namespace OweMe.Identity.IntegrationTests.Helpers;
+﻿namespace OweMe.Identity.IntegrationTests.Helpers;
 
 internal static class TokenHelper
 {
@@ -25,6 +23,11 @@ internal static class TokenHelper
             Assert.Fail("Token request failed: " + tokenResponse.Error);
         }
 
+        if (tokenResponse.AccessToken is null)
+        {
+            Assert.Fail("Token request failed: AccessToken is null");
+        }
+
         return tokenResponse.AccessToken;
     }
 
@@ -45,6 +48,11 @@ internal static class TokenHelper
         if (tokenResponse.IsError)
         {
             Assert.Fail("Token request failed: " + tokenResponse.Error);
+        }
+
+        if (tokenResponse.AccessToken is null)
+        {
+            Assert.Fail("Token request failed: AccessToken is null");
         }
 
         return tokenResponse.AccessToken;
