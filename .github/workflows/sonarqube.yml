@@ -101,6 +101,12 @@ jobs:
         run: |
           dotnet test --configuration Release --no-restore --no-build --collect:"XPlat Code Coverage" --results-directory:./coverage/
 
+
+      - name: List files for debugging
+        run: |
+          echo "Files in the current directory:"
+          find . -name "*.xml" -type f
+                      
       - name: Generate coverage report for SonarQube
         run: |
           # Find the coverage file
@@ -108,11 +114,6 @@ jobs:
           
           # Copy it to the expected location with the expected name
           cp "$COVERAGE_FILE" ./coverage.xml
-
-      - name: List files for debugging
-        run: |
-          echo "Files in the current directory:"
-          find . -name "*.xml" -type f
 
       - name: SonarQube End
         env:
