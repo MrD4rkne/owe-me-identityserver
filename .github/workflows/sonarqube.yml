@@ -55,6 +55,10 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
+
+      - name: Install dotcover tool
+        run: |
+          dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
@@ -80,8 +84,7 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /d:sonar.scanner.scanAll=false \
-            /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}/**/*.trx" \
-            /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/**/TestResults/**/coverage.cobertura.xml"
+            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html
 
       - name: Dotnet restore
         run: |
@@ -94,7 +97,11 @@ jobs:
       - name: Test with coverage
         id: test
         run: |
-          dotnet test --logger trx --collect:"XPlat Code Coverage" --no-build --configuration Release
+          dotCover cover-dotnet \
+            --reportType=HTML \
+            --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
+            --Output=dotCover.Output.html \
+          -- test --configuration Release --no-build
 
       - name: List test results
         run: |
