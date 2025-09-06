@@ -55,10 +55,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
-
-      - name: Install coverlet
-        run: |
-          dotnet tool install --global coverlet.console
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
