@@ -80,8 +80,8 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /d:sonar.scanner.scanAll=false \
-            /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}/*.trx" \
-            /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/*/coverage.cobertura.xml"
+            /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}/**/*.trx" \
+            /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/**/TestResults/**/coverage.cobertura.xml"
 
       - name: Dotnet restore
         run: |
