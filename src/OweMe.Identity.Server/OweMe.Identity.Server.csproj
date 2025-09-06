@@ -34,9 +34,4 @@
             <Link>.dockerignore</Link>
         </Content>
 	</ItemGroup>
-
-    <!-- Exclude analysis for scaffolded Identity pages -->
-    <ItemGroup>
-        <Compile Remove="Pages\**"/>
-    </ItemGroup>
 </Project>
