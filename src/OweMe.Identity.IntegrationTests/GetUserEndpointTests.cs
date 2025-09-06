@@ -74,7 +74,7 @@ public class GetUserEndpointTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task For_Client_WithoutProperScope_Should_Return_Unauthorized()
+    public async Task For_ClientWithoutProperScope_Should_ReturnUnauthorized()
     {
         // Arrange
         var urls = _app.Urls;
