@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Moq;
-using OweMe.Identity.Server.Users.Domain;
+﻿using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Presentation;
-using Shouldly;
 
 namespace OweMe.Identity.UnitTests.Users.Presentation;
 
@@ -57,7 +54,8 @@ public class GetUserEndpointTests
         result.ShouldNotBeNull();
         result.ShouldBeOfType<Ok<User>>();
         var okResult = result as Ok<User>;
-        okResult!.Value.Sub.ShouldBe(_userId.ToString());
+        okResult.ShouldNotBeNull();
+        okResult.Value.Sub.ShouldBe(_userId.ToString());
         okResult.Value.UserName.ShouldBe(userName);
         okResult.Value.Email.ShouldBe(email);
 
@@ -70,14 +68,14 @@ public class GetUserEndpointTests
     [InlineData(null, "notnull@owe.me")]
     [InlineData("not null", null)]
     [InlineData(null, null)]
-    public async Task ForExistentUser_WithNullUserNameOrEmail_ReturnsNotFound(string userName, string email)
+    public async Task ForExistentUser_WithNullUserNameOrEmail_ReturnsNotFound(string? userName, string? email)
     {
         // Arrange
         var applicationUser = new ApplicationUser
         {
             Id = _userId.ToString(),
-            UserName = userName,
-            Email = email
+            UserName = userName!,
+            Email = email!
         };
         _userServiceMock.Setup(s => s.GetUserByIdAsync(_userId.ToString(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(applicationUser);
