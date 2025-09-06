@@ -105,6 +105,11 @@ jobs:
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
             -- /usr/share/dotnet/dotnet test "$GITHUB_WORKSPACE/OweMe.Identity.sln" --configuration Release --no-restore --no-build --verbosity normal
 
+      - name: List files for debugging
+        run: |
+          echo "Files in the current directory:"
+          ls -la
+
       - name: SonarQube End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
