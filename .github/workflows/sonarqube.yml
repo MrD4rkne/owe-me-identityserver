@@ -101,7 +101,7 @@ jobs:
           # Run tests under coverage producing a snapshot
           dotCover cover \
             --reportType=HTML \
-            --Output=dotCover.Output.html \
+            --Output="$GITHUB_WORKSPACE/dotCover.Output.html" \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
             -- /usr/share/dotnet/dotnet test "$GITHUB_WORKSPACE/OweMe.Identity.sln" --configuration Release --no-restore --no-build --verbosity normal
 
