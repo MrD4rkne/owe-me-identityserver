@@ -99,7 +99,8 @@ jobs:
             --reportType=HTML \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
             --Output=dotCover.Output.html \
-          -- test --configuration Release --no-restore --no-build --verbosity normal
+            -- dotnet test OweMe.Identity.sln --configuration Release --no-restore --no-build --verbosity normal
+        working-directory: ${{ github.workspace }}
 
       - name: SonarQube End
         env:
