@@ -101,7 +101,7 @@ jobs:
           
       - name: Build
         run: |
-          dotnet build --configuration Release
+          dotnet build --configuration Release --no-restore
           
       - name: Test with coverage
         id: test
