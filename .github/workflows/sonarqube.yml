@@ -83,7 +83,9 @@ jobs:
             /o:"$SONAR_ORG" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.scanner.scanAll=false
+            /d:sonar.scanner.scanAll=false \
+            /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}/*.trx" \
+            /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}/*/coverage.cobertura.xml"
 
       - name: Dotnet restore
         run: |
@@ -98,19 +100,10 @@ jobs:
         run: |
           dotnet test --logger trx --collect:"XPlat Code Coverage"
 
-
       - name: List files for debugging
         run: |
           echo "Files in the current directory:"
           find . -name "*.xml" -type f
-                      
-      - name: Generate coverage report for SonarQube
-        run: |
-          # Find the coverage file
-          COVERAGE_FILE=$(find ./coverage -name "coverage.cobertura.xml" | head -1)
-          
-          # Copy it to the expected location with the expected name
-          cp "$COVERAGE_FILE" ./coverage.xml
 
       - name: SonarQube End
         env:
