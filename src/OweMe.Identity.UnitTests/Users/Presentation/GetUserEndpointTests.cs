@@ -58,6 +58,7 @@ public class GetUserEndpointTests
         result.ShouldBeOfType<Ok<User>>();
         var okResult = result as Ok<User>;
         okResult.ShouldNotBeNull();
+        okResult.Value.ShouldNotBeNull();
         okResult.Value.Sub.ShouldBe(_userId.ToString());
         okResult.Value.UserName.ShouldBe(userName);
         okResult.Value.Email.ShouldBe(email);
