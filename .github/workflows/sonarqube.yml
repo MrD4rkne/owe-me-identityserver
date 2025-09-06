@@ -11,6 +11,8 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    env:
+      SLN_FILE: OweMe.Identity.sln
 
     steps:
       - name: Set up JDK 17
@@ -99,7 +101,7 @@ jobs:
           dotCover cover \
             --Output=coverage.dcvr \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
-            -- dotnet test --configuration Release --no-restore --no-build --verbosity normal
+            -- dotnet test "${{ env.SLN_FILE }}" --configuration Release --no-restore --no-build --verbosity normal
 
       - name: Report coverage
         if: always()
