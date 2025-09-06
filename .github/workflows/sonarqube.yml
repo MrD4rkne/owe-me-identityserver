@@ -107,8 +107,8 @@ jobs:
         if: always()
         run: |
           # Convert snapshot to XML (for Sonar) and HTML (optional human view)
-          dotCover report --Source=coverage.dcvr --ReportType=DetailedXML --Output=coverage.xml
-          dotCover report --Source=coverage.dcvr --ReportType=HTML --Output=coverage.html
+          dotCover report /Source=coverage.dcvr /ReportType=DetailedXML /Output=coverage.xml
+          dotCover report /Source=coverage.dcvr /ReportType=HTML /Output=coverage.html
 
       - name: SonarQube End
         env:
