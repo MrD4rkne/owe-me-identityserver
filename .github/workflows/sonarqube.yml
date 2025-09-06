@@ -94,14 +94,6 @@ jobs:
       - name: Build
         run: |
           dotnet build --configuration Release --no-restore
-
-      - name: List files
-        run: |
-          find . -type f
-
-      - name: Test projects
-        run: |
-          dotnet test --configuration Release --no-restore --no-build
           
       - name: Test with coverage
         run: |
