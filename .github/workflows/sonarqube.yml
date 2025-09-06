@@ -95,7 +95,7 @@ jobs:
           
       - name: Test with coverage
         run: |
-          dotCover cover-dotnet \
+          dotCover cover \
             --reportType=HTML \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
             --Output=dotCover.Output.html \
