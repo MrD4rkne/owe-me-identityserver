@@ -13,6 +13,8 @@
         <PackageReference Include="Testcontainers.PostgreSql" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio" />
+        <PackageReference Include="Moq"/>
+        <PackageReference Include="Duende.IdentityModel"/>
     </ItemGroup>
 
     <ItemGroup>

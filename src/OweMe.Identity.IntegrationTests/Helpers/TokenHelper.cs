@@ -1,4 +1,6 @@
-﻿namespace OweMe.Identity.IntegrationTests.Helpers;
+﻿using Duende.IdentityModel.Client;
+
+namespace OweMe.Identity.IntegrationTests.Helpers;
 
 internal static class TokenHelper
 {
