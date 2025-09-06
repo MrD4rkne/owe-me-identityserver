@@ -37,7 +37,7 @@ public sealed class MigrationSeedingTests
             new Client
             {
                 ClientId = clientId,
-                ClientSecrets = [new Secret(clientSecret.Sha256())],
+                ClientSecrets = [new Secret(clientSecret)],
                 AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
                 AllowedScopes = [apiScope]
             }
@@ -179,7 +179,7 @@ public sealed class MigrationSeedingTests
             .Include(c => c.AllowedGrantTypes)
             .Include(c => c.ClientSecrets)
             .Include(c => c.AllowedScopes)
-            .ToListAsync().Result;
+            .ToList();
         clients.Count.ShouldBe(1);
         clients[0].ClientId.ShouldBe(clientId);
         clients[0].ClientSecrets.ShouldNotBeEmpty();

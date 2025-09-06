@@ -58,7 +58,7 @@ public sealed class StartupTests
                 new Client
                 {
                     ClientId = clientId,
-                    ClientSecrets = [new Secret(clientSecret.Sha256())],
+                    ClientSecrets = [new Secret(clientSecret)],
                     AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
                     AllowedScopes = [apiScope]
                 }
@@ -80,27 +80,15 @@ public sealed class StartupTests
         })
             .WithDatabase()
             .StartAppAsync();
-        
+
         var urls = app.Urls;
         Assert.NotEmpty(urls);
-
+        
         var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        var disco = await client.GetDiscoveryDocumentAsync(urls.First());
-        Assert.False(disco.IsError, $"Discovery document is not accessible at {urls.First()}: {disco.Error}");
         
         // Act
-        var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
-        {
-            Address = disco.TokenEndpoint,
-            ClientId = clientId,
-            ClientSecret = clientSecret,
-            UserName = testUserName,
-            Password = testUserPassword,
-            Scope = apiScope,
-        });
-        
-        // Assert
-        Assert.False(tokenResponse.IsError, $"Token request failed: {tokenResponse.Error}");
-        Assert.NotNull(tokenResponse.AccessToken);
+        string token = await TokenHelper.GetTokenAsync(client, urls.First(), testUserName, testUserPassword,
+            clientId, clientSecret, apiScope);
+        Assert.NotNull(token);
     }
 }

@@ -20,7 +20,6 @@
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
 
 		<PackageReference Include="Serilog.AspNetCore" />
-
         <PackageReference Include="Serilog.Sinks.ApplicationInsights"/>
 	</ItemGroup>
 
@@ -31,13 +30,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="..\.dockerignore">
-	    <Link>.dockerignore</Link>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Data\Migrations\" />
-	  <Folder Include="Users\Presentation\" />
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
 	</ItemGroup>
 </Project>
