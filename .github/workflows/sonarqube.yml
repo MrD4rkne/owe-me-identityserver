@@ -107,7 +107,6 @@ jobs:
       - name: Report coverage
         run: |
           dotCover report --snapshot-source coverage.dcvr --xml-report-output coverage.xml
-          dotCover report --snapshot-source coverage.dcvr /ReportType=HTML /Output=coverage.html
 
       - name: SonarQube End
         env:
