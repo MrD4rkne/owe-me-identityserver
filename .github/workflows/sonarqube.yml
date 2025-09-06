@@ -100,10 +100,9 @@ jobs:
         run: |
           dotnet test --logger trx --collect:"XPlat Code Coverage"
 
-      - name: List files for debugging
+      - name: List test results
         run: |
-          echo "Files in the current directory:"
-          find . -name "*.xml" -type f
+          find . -name "*.xml" -o -name "*.trx" -type f
 
       - name: SonarQube End
         env:
