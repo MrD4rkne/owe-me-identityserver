@@ -55,6 +55,7 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
+        run: dotnet --info
 
       - name: Install dotcover
         run: dotnet tool install --global JetBrains.dotCover.CommandLineTools
