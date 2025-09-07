@@ -27,6 +27,9 @@
 		<SonarQubeSetting Include="sonar.coverage.exclusions">
 			<Value>**/Program.cs, **/Migrations/**.cs, **/Pages/**, **/wwwroot/**</Value>
 		</SonarQubeSetting>
+		<SonarQubeSetting Include="sonar.exclusions">
+			<Value>**/Migrations/**, **/Pages/**, **/wwwroot/**</Value>
+		</SonarQubeSetting>
 	</ItemGroup>
 
 	<ItemGroup>

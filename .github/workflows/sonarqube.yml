@@ -82,6 +82,7 @@ jobs:
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
             /d:sonar.scanner.scanAll=false \
+            /d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**" \
             /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html
 
       - name: Dotnet restore
