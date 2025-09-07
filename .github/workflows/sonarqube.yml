@@ -24,96 +24,27 @@ jobs:
         with:
           fetch-depth: 0  # Full history for SonarCloud analysis
 
-      - name: Define Cache Directory Variable
-        run: echo "CACHE_DIR=$HOME/.sonar" >> $GITHUB_ENV
-
-      - name: Cache SonarQube Cloud packages
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CACHE_DIR }}/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache SonarQube Cloud scanner
-        id: cache-sonar-scanner
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.CACHE_DIR }}/scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
-
-      - name: Install SonarQube Cloud scanner
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        run: |
-          # Create the cache directory if it doesn't exist
-          mkdir -p ${{ env.CACHE_DIR }}/scanner
-          dotnet tool update dotnet-sonarscanner --tool-path ${{ env.CACHE_DIR }}/scanner
-          
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ vars.DOTNET_VERSION }}
-
-      - name: Install dotcover tool
-        run: |
-          dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7
-          
-      - name: Setup docker
-        uses: docker/setup-buildx-action@v3
-
       - uses: dotnet/nbgv@master
         id: nbgv
-      
+
       - name: Get version
         run: echo "${{ steps.nbgv.outputs.SemVer2 }}"
 
-      - name: SonarQube Begin
+      -   name: SonarScanner for .NET 9 with pull request decoration support
+          uses: highbyte/sonarscan-dotnet@v2.4.2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORG: ${{ secrets.SONAR_ORG }}
-        run: |
-          scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
-
-          # Run SonarScanner Begin with quality gate waiting enabled
-          "$scannerPath" begin /k:"$SONAR_PROJECT_KEY" \
-            /o:"$SONAR_ORG" \
-            /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.scanner.scanAll=false \
-            /d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**" \
-            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html
-
-      - name: Dotnet restore
-        run: |
-          dotnet restore
-          
-      - name: Build
-        run: |
-          dotnet build --configuration Release --no-restore
-          
-      - name: Test with coverage
-        id: test
-        run: |
-          dotCover cover-dotnet \
-            --reportType=HTML \
-            --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
-            --Output=dotCover.Output.html \
-          -- test --configuration Release --no-build
-
-      - name: List test results
-        run: |
-          find . -name "*.xml" -o -name "*.trx" -type f
-
-      - name: SonarQube End
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORG: ${{ secrets.SONAR_ORG }}
-        run: |
-          scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
-          
-          # Run SonarScanner End securely
-          "$scannerPath" end /d:sonar.token="$SONAR_TOKEN"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+              # The key of the SonarQube project
+              sonarProjectKey: ${{ secrets.SONAR_PROJECT_KEY }}
+              # The name of the SonarQube project
+              sonarProjectName: ${{ secrets.SONAR_PROJECT_KEY }}
+              # The name of the SonarQube organization in SonarCloud
+              sonarOrganization: ${{ secrets.SONAR_ORG }}
+              # The SonarQube server URL
+              sonarHostname: ${{ secrets.SONAR_HOST_URL }}
+              # Command arguments to dotnet test
+              dotnetTestArguments: --configuration Release --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+              # Extra command arguments for the SonarScanner 'begin' command
+              sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" /d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**"
