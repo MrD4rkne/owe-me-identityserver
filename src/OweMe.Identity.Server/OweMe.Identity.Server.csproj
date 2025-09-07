@@ -32,6 +32,18 @@
 		</SonarQubeSetting>
 	</ItemGroup>
 
+    <!-- Suppress analyzer warnings from scaffolded UI and EF migrations at build -->
+    <ItemGroup>
+        <!-- Pages -->
+        <Compile Update="**/Pages/**/*.cs">
+            <NoWarn>$(NoWarn);S2068;S1135;S1192;S3993;S2325;S3218;S1125;S3236;S1066;S1186;S3928;S3776;S1116;S4487;S2589</NoWarn>
+        </Compile>
+        <!-- EF Core Migrations -->
+        <Compile Update="**/Migrations/**/*.cs">
+            <NoWarn>$(NoWarn);S2068;S1135;S1192;S3993;S2325;S3218;S1125;S3236;S1066;S1186;S3928;S3776;S1116;S4487;S2589</NoWarn>
+        </Compile>
+    </ItemGroup>
+
 	<ItemGroup>
         <Content Include="..\..\.dockerignore">
             <Link>.dockerignore</Link>
