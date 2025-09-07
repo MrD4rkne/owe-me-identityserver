@@ -19,16 +19,11 @@ namespace OweMe.Identity.Server.Pages.Login;
 [AllowAnonymous]
 public class Index : PageModel
 {
-    private readonly IIdentityServerInteractionService _interaction;
     private readonly IEventService _events;
-    private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
-    private readonly UserManager<ApplicationUser> _userManagerManager;
-
-    public ViewModel View { get; set; } = default!;
-
-    [BindProperty]
-    public InputModel Input { get; set; } = default!;
+    private readonly IIdentityServerInteractionService _interaction;
+    private readonly IAuthenticationSchemeProvider _schemeProvider;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public Index(
         IIdentityServerInteractionService interaction,
@@ -41,13 +36,17 @@ public class Index : PageModel
         _schemeProvider = schemeProvider;
         _identityProviderStore = identityProviderStore;
         _events = events;
-        _userManagerManager = userManager;
+        _userManager = userManager;
     }
+
+    public ViewModel View { get; set; } = default!;
+
+    [BindProperty] public InputModel Input { get; set; } = default!;
 
     public async Task<IActionResult> OnGet(string? returnUrl)
     {
         await BuildModelAsync(returnUrl);
-            
+
         if (View.IsExternalLoginOnly)
         {
             // we only have one option for logging in and it's an external provider
@@ -56,7 +55,7 @@ public class Index : PageModel
 
         return Page();
     }
-        
+
     public async Task<IActionResult> OnPost()
     {
         // check if we are in the context of an authorization request
@@ -94,13 +93,12 @@ public class Index : PageModel
 
         if (ModelState.IsValid)
         {
-            var user = await _userManagerManager.FindByNameAsync(Input.Username);
-            // validate username/password against in-memory store
+            var user = await _userManager.FindByNameAsync(Input.Username!);
             if (user is not null)
             {
-                if (await _userManagerManager.CheckPasswordAsync(
-                        await _userManagerManager.FindByNameAsync(Input.Username),
-                        Input.Password))
+                if (await _userManager.CheckPasswordAsync(
+                        user,
+                        Input.Password!))
                 {
                     await _events.RaiseAsync(new UserLoginSuccessEvent(Input.Username, user.Id, Input.Username,
                         clientId: context?.Client.ClientId));
@@ -160,8 +158,10 @@ public class Index : PageModel
             }
 
             const string error = "invalid credentials";
-            await _events.RaiseAsync(new UserLoginFailureEvent(Input.Username, error, clientId:context?.Client.ClientId));
-            Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider, error);
+            await _events.RaiseAsync(new UserLoginFailureEvent(Input.Username, error,
+                clientId: context?.Client.ClientId));
+            Telemetry.Metrics.UserLoginFailure(context?.Client.ClientId, IdentityServerConstants.LocalIdentityProvider,
+                error);
             ModelState.AddModelError(string.Empty, LoginOptions.InvalidCredentialsErrorMessage);
         }
 
@@ -176,7 +176,7 @@ public class Index : PageModel
         {
             ReturnUrl = returnUrl
         };
-            
+
         var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
         if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
         {
@@ -192,7 +192,7 @@ public class Index : PageModel
 
             if (!local)
             {
-                View.ExternalProviders = [new ViewModel.ExternalProvider ( authenticationScheme: context.IdP )];
+                View.ExternalProviders = [new ViewModel.ExternalProvider(context.IdP)];
             }
 
             return;
@@ -225,7 +225,8 @@ public class Index : PageModel
             allowLocal = client.EnableLocalLogin;
             if (client.IdentityProviderRestrictions != null && client.IdentityProviderRestrictions.Count != 0)
             {
-                providers = providers.Where(provider => client.IdentityProviderRestrictions.Contains(provider.AuthenticationScheme)).ToList();
+                providers = providers.Where(provider =>
+                    client.IdentityProviderRestrictions.Contains(provider.AuthenticationScheme)).ToList();
             }
         }
 
