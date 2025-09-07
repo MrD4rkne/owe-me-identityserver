@@ -27,6 +27,7 @@ dotnet_diagnostic.S3776.severity = none
 dotnet_diagnostic.S1116.severity = none
 dotnet_diagnostic.S4487.severity = none
 dotnet_diagnostic.S2589.severity = none
+dotnet_diagnostic.S1135.severity = none
 
 [**/Pages/**/*.cshtml]
 dotnet_analyzer_diagnostic.severity = none
