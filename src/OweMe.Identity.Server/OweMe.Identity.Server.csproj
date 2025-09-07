@@ -5,7 +5,7 @@
 	</PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="**/Pages/**.cs">
+        <Compile Update="Pages/**.cs">
             <!-- Exclude the file from analysis -->
             <SonarQubeExclude>true</SonarQubeExclude>
         </Compile>
