@@ -4,13 +4,6 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 
-    <ItemGroup>
-        <Compile Update="Pages/**.cs">
-            <!-- Exclude the file from analysis -->
-            <SonarQubeExclude>true</SonarQubeExclude>
-        </Compile>
-    </ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Include="Duende.IdentityModel" /> 
 		<PackageReference Include="Duende.IdentityServer" />
@@ -34,9 +27,6 @@
 		<SonarQubeSetting Include="sonar.coverage.exclusions">
 			<Value>**/Program.cs, **/Migrations/**.cs, **/Pages/**, **/wwwroot/**</Value>
 		</SonarQubeSetting>
-        <SonarQubeSetting Include="sonar.exclusions">
-            <Value>**/Migrations/**.cs, **/Pages/**</Value>
-        </SonarQubeSetting>
 	</ItemGroup>
 
 	<ItemGroup>
