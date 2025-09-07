@@ -1,0 +1,19 @@
+﻿# EditorConfig file for OweMe.Identity
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Suppress warnings in generated or scaffolded code
+[**/Pages/**/*.{cs,cshtml}]
+dotnet_analyzer_diagnostic.severity = none
+
+# Suppress warnings for Migrations
+[**/Migrations/**/*.cs]
+dotnet_analyzer_diagnostic.severity = none
+dotnet_diagnostic.S*.severity = none
