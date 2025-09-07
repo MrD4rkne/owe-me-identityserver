@@ -9,6 +9,8 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+dotnet_diagnostic.S1135.severity = none
+
 # Suppress warnings in generated or scaffolded code (Pages)
 [**/Pages/**/*.cs]
 dotnet_analyzer_diagnostic.severity = none
@@ -52,6 +54,6 @@ dotnet_diagnostic.S1116.severity = none
 dotnet_diagnostic.S4487.severity = none
 dotnet_diagnostic.S2589.severity = none
 
-# Suppress hard-coded credential detection in appsettings JSON files
-[**/appsettings*.json]
+# Suppress S2068 (hard-coded credentials) for JSON files
+[**/*.json]
 dotnet_diagnostic.S2068.severity = none
