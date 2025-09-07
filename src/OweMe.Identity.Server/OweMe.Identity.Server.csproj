@@ -4,6 +4,13 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 
+    <ItemGroup>
+        <Compile Include="**/Pages/**.cs">
+            <!-- Exclude the file from analysis -->
+            <SonarQubeExclude>true</SonarQubeExclude>
+        </Compile>
+    </ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Duende.IdentityModel" /> 
 		<PackageReference Include="Duende.IdentityServer" />
