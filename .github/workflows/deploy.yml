@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0  # Full history for versioning
 
       - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
 
