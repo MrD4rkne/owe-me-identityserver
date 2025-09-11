@@ -1,20 +1,18 @@
 ﻿using OweMe.Identity.Server.Setup;
 using Serilog;
 
+var builder = WebApplication.CreateBuilder(args);
+
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .ReadFrom.Configuration(builder.Configuration)
     .CreateBootstrapLogger();
 
 Log.Information("Starting up");
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
-
-    builder.Host.UseSerilog((ctx, lc) => lc
-        .WriteTo.Console()
-        .Enrich.FromLogContext()
-        .ReadFrom.Configuration(ctx.Configuration));
+    builder.Host.UseSerilog();
+    builder.Services.AddSerilog();
 
     var app = builder
         .AddIdentityServer()

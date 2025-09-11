@@ -14,8 +14,6 @@ public static class HostingExtensions
 {
     public static WebApplicationBuilder AddIdentityServer(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSerilog();
-        
         builder.Services.AddRazorPages();
         
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
