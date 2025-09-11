@@ -20,7 +20,11 @@
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
 
 		<PackageReference Include="Serilog.AspNetCore" />
+		<PackageReference Include="Serilog.Enrichers.Span" />
+		<PackageReference Include="Serilog.Settings.Configuration" />
+		<PackageReference Include="Serilog.Sinks.Console" />
         <PackageReference Include="Serilog.Sinks.ApplicationInsights"/>
+		<PackageReference Include="Serilog.Sinks.OpenTelemetry" />
 	</ItemGroup>
 
 	<ItemGroup>
