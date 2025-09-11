@@ -6,12 +6,12 @@ EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["src/OweMe.Identity.Server/OweMe.Identity.Server.csproj", "src/OweMe.Identity.Server/"]
-RUN dotnet restore "src/OweMe.Identity.Server/OweMe.Identity.Server.csproj"
-COPY . .
+
+COPY . /src
+RUN ls -la
 WORKDIR "/src/src/OweMe.Identity.Server"
-RUN dotnet build "./OweMe.Identity.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet restore
+RUN dotnet build "./OweMe.Identity.Server.csproj" --no-restore -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
