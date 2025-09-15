@@ -1,19 +1,43 @@
-﻿using OweMe.Identity.Server.Setup;
+﻿using Duende.IdentityServer;
+using OweMe.Identity.Server.Setup;
 using Serilog;
+using Serilog.Enrichers.Span;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithSpan()
     .ReadFrom.Configuration(builder.Configuration)
     .CreateBootstrapLogger();
+
+builder.Host.UseSerilog();
+builder.Services.AddSerilog();
+
+builder.Services.AddOpenTelemetry()
+    .WithLogging()
+    .WithTracing(b =>
+    {
+        b.AddAspNetCoreInstrumentation();
+        b.AddHttpClientInstrumentation();
+        b.AddSource(IdentityServerConstants.Tracing.Basic)
+            .AddSource(IdentityServerConstants.Tracing.Cache)
+            .AddSource(IdentityServerConstants.Tracing.Services)
+            .AddSource(IdentityServerConstants.Tracing.Stores)
+            .AddSource(IdentityServerConstants.Tracing.Validation);
+    })
+    .WithMetrics(b =>
+    {
+        b.AddAspNetCoreInstrumentation();
+        b.AddHttpClientInstrumentation();
+    }).WithLogging();
 
 Log.Information("Starting up");
 
 try
 {
-    builder.Host.UseSerilog();
-    builder.Services.AddSerilog();
-
     var app = builder
         .AddIdentityServer()
         .Build()
