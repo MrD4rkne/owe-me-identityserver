@@ -5,9 +5,11 @@
     build:
       context: .
       dockerfile: src/OweMe.Identity.Server/Dockerfile
+    ports:
+      - "5010:8080"
+      - "5011:8081"
     environment:
       - Serilog__WriteTo__0__Name=Console
-      - Serilog__Enrich__0=WithSpan
       - ConnectionStrings__DefaultConnection=Server=oweme.identity.database;Database=OweMe.Identity;Username=sa;Password=Password123;TrustServerCertificate=True;
       - Migrations__ApplyMigrations=true
       - Migrations__SeedData=true
