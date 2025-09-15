@@ -14,7 +14,8 @@
       - Migrations__ApplyMigrations=true
       - Migrations__SeedData=true
     depends_on:
-      - oweme.identity.database
+      oweme.identity.database:
+        condition: service_healthy
 
   oweme.identity.database:
     image: "postgres:15"
@@ -24,3 +25,8 @@
       - POSTGRES_DB=OweMe.Identity
       - POSTGRES_USER=sa
       - POSTGRES_PASSWORD=Password123
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
