@@ -13,6 +13,7 @@
       - ConnectionStrings__DefaultConnection=Server=oweme.identity.database;Database=OweMe.Identity;Username=sa;Password=Password123;TrustServerCertificate=True;
       - Migrations__ApplyMigrations=true
       - Migrations__SeedData=true
+      - OweMe__Identity__IssuerUri=http://oweme.identity:8080
     depends_on:
       oweme.identity.database:
         condition: service_healthy

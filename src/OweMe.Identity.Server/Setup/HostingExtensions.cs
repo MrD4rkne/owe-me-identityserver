@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using Duende.IdentityServer.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Domain;
@@ -15,16 +17,20 @@ public static class HostingExtensions
     public static WebApplicationBuilder AddIdentityServer(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
-        
+
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-        
-        builder.Services.AddIdentityServer(options =>
+
+        builder.Services.AddOptions<IdentityServerOptions>()
+            .Configure<IOptions<IdentityConfig>>((options, identityConfig) =>
             {
+                options.IssuerUri = identityConfig.Value.IssuerUri;
                 // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
                 options.EmitStaticAudienceClaim = true;
-            })
+            });
+
+        builder.Services.AddIdentityServer()
             .AddConfigurationStore(options =>
             {
                 options.ConfigureDbContext = dbContextBuilder =>
@@ -46,22 +52,22 @@ public static class HostingExtensions
                 options.TokenCleanupInterval = 3600; // interval in seconds (default is 3600)
             })
             .AddAspNetIdentity<ApplicationUser>();
-        
+
         builder.AddUsers();
         builder.Services.AddSingleton<DatabaseSeeder>();
         builder.Services.AddHostedService<MigrationHostedService>();
         builder.Services.AddOptions<IdentityConfig>().BindConfiguration(IdentityConfig.SectionName);
         builder.Services.AddOptions<MigrationsOptions>().BindConfiguration(MigrationsOptions.SectionName);
-        
+
         builder.Services.AddLocalApiAuthentication();
 
         return builder;
     }
-    
+
     public static WebApplication ConfigurePipeline(this WebApplication app)
-    { 
+    {
         app.UseSerilogRequestLogging();
-        
+
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
@@ -71,7 +77,7 @@ public static class HostingExtensions
             app.UseExceptionHandler("/Home/Error");
             app.UseHsts();
         }
-        
+
         app.UseStaticFiles();
         app.UseRouting();
 
@@ -81,7 +87,7 @@ public static class HostingExtensions
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapRazorPages().RequireAuthorization();
-        
+
         return app;
     }
 }
