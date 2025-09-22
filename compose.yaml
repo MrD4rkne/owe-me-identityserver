@@ -10,13 +10,21 @@
       - "5011:8081"
     environment:
       - Serilog__WriteTo__0__Name=Console
+      - Serilog__WriteTo__1__Args__ResourceAttributes__service.name=OweMe.Identity
+      - Serilog__WriteTo__1__Args__Endpoint=http://seq:5341/ingest/otlp/v1/logs
+      - Serilog__WriteTo__1__Args__Protocol=HttpProtobuf
+      - Serilog__WriteTo__1__Name=OpenTelemetry
+
       - ConnectionStrings__DefaultConnection=Server=oweme.identity.database;Database=OweMe.Identity;Username=sa;Password=Password123;TrustServerCertificate=True;
       - Migrations__ApplyMigrations=true
       - Migrations__SeedData=true
+
       - OweMe__Identity__IssuerUri=http://oweme.identity:8080
     depends_on:
       oweme.identity.database:
         condition: service_healthy
+      seq:
+        condition: service_started
 
   oweme.identity.database:
     image: "postgres:15"
