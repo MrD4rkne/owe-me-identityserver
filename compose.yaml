@@ -3,7 +3,7 @@
 services:
   oweme.identity:
     image: oweme.identity
-    container_name: IdentityServer
+    container_name: oweme.identity
     ports:
       - "5010:8080"
       - "5011:8081"

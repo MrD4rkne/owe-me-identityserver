@@ -1,10 +1,10 @@
 # Override file for debugging purposes
-# Use with: docker-compose -f compose.yaml -f compose.override.yaml up
+# Use with: docker-compose -f ../compose.yaml -f compose.override.yaml up
 
 name: oweme-system
 
 services:
   oweme.identity:
     build:
-      context: .
+      context: ./owe-me-identityserver
       dockerfile: src/OweMe.Identity.Server/Dockerfile
