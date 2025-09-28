@@ -1,10 +1,9 @@
-﻿services:
+﻿name: oweme-system
+
+services:
   oweme.identity:
     image: oweme.identity
     container_name: IdentityServer
-    build:
-      context: .
-      dockerfile: src/OweMe.Identity.Server/Dockerfile
     ports:
       - "5010:8080"
       - "5011:8081"
