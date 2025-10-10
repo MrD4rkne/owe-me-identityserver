@@ -54,3 +54,5 @@ finally
     Log.Information("Shut down complete");
     await Log.CloseAndFlushAsync();
 }
+
+public partial class Program;

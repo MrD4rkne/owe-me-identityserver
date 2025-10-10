@@ -1,44 +1,52 @@
 ﻿using Duende.IdentityModel.Client;
+using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
+using Shouldly;
 using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class StartupTests
+public sealed class StartupTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    public StartupTests(ITestOutputHelper testOutputHelper)
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public StartupTests(ITestOutputHelper testOutputHelper, WebApplicationFactory<Program> factory)
     {
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
+        _factory = factory;
     }
-    
+
     [Fact]
     public async Task Test_DiscoveryDocument_Accessible()
     {
-        // Act
-        var app = await IntegrationTestSetup.Create()
-            .Configure<MigrationsOptions>(options =>
+        // Arrange
+        var client = _factory
+            .WithWebHostBuilder(builder =>
             {
-                options.ApplyMigrations = true;
-                options.SeedData = false;
+                builder.ConfigureServices(services =>
+                {
+                    services.Configure<MigrationsOptions>(options =>
+                    {
+                        options.ApplyMigrations = true;
+                        options.SeedData = true;
+                    });
+                });
             })
-            .WithDatabase()
-            .StartAppAsync();
-        
-        // Assert
-        var urls = app!.Urls;
-        Assert.NotEmpty(urls);
+            .CreateClient();
 
-        foreach (var url in urls)
-        {
-            var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-            var disco = await client.GetDiscoveryDocumentAsync(urls.First());
-            Assert.False(disco.IsError, $"Discovery document is not accessible at {url}: {disco.Error}");
-        }
+        // Act
+        var disco = await client.GetDiscoveryDocumentAsync();
+
+        // Assert
+        Assert.False(disco.IsError, $"Discovery document is not accessible: {disco.Error}");
+        Assert.NotNull(disco.TokenEndpoint);
     }
-    
+
     [Fact]
     public async Task After_Seeding_TestUser_Can_Request_Token()
     {
@@ -49,46 +57,53 @@ public sealed class StartupTests
         const string clientSecret = "secret";
         const string apiScope = "api1";
 
-        var app = await IntegrationTestSetup.Create()
-            .Configure<IdentityConfig>(config =>
-        {
-            config.ApiScopes = [new ApiScope(apiScope)];
-            config.Clients =
-            [
-                new Client
+        var client = _factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
                 {
-                    ClientId = clientId,
-                    ClientSecrets = [new Secret(clientSecret)],
-                    AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                    AllowedScopes = [apiScope]
-                }
-            ];
-            config.Users =
-            [
-                new TestUser
-                {
-                    Username = testUserName,
-                    Password = testUserPassword,
-                    SubjectId = Guid.NewGuid().ToString()
-                }
-            ];
-        })
-            .Configure<MigrationsOptions>(options =>
-        {
-            options.ApplyMigrations = true;
-            options.SeedData = true;
-        })
-            .WithDatabase()
-            .StartAppAsync();
+                    services.Configure<IdentityConfig>(config =>
+                    {
+                        config.ApiScopes =
+                        [
+                            new ApiScope(apiScope),
+                            new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
+                        ];
+                        config.Clients =
+                        [
+                            new Client
+                            {
+                                ClientId = clientId,
+                                ClientSecrets = [new Secret(clientSecret)],
+                                AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                                AllowedScopes = [apiScope, "openid", "profile"]
+                            }
+                        ];
+                        config.Users =
+                        [
+                            new TestUser
+                            {
+                                Username = testUserName,
+                                Password = testUserPassword
+                            }
+                        ];
+                    });
 
-        var urls = app.Urls;
-        Assert.NotEmpty(urls);
-        
-        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        
+                    services.Configure<MigrationsOptions>(options =>
+                    {
+                        options.ApplyMigrations = true;
+                        options.SeedData = true;
+                    });
+                });
+            })
+            .CreateClient();
+
         // Act
-        string token = await TokenHelper.GetTokenAsync(client, urls.First(), testUserName, testUserPassword,
-            clientId, clientSecret, apiScope);
-        Assert.NotNull(token);
+        client = await client.WithToken(testUserName, testUserPassword, clientId, clientSecret, apiScope);
+
+        // Assert
+        client.DefaultRequestHeaders.Authorization.ShouldNotBeNull();
+        client.DefaultRequestHeaders.Authorization!.Scheme.ShouldBe("Bearer");
+        client.DefaultRequestHeaders.Authorization.Parameter.ShouldNotBeNullOrEmpty();
     }
 }

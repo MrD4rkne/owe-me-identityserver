@@ -4,11 +4,11 @@ namespace OweMe.Identity.IntegrationTests.Helpers;
 
 internal static class TokenHelper
 {
-    public static async Task<string> GetTokenAsync(HttpClient client, string url, string userName, string password,
+    public static async Task<HttpClient> WithToken(this HttpClient client, string userName, string password,
         string clientId, string clientSecret, string scope)
     {
-        var disco = await client.GetDiscoveryDocumentAsync(url);
-        Assert.False(disco.IsError, $"Discovery document is not accessible at {url}: {disco.Error}");
+        var disco = await client.GetDiscoveryDocumentAsync();
+        Assert.False(disco.IsError, $"Discovery document is not accessible: {disco.Error}");
 
         var tokenResponse = await client.RequestPasswordTokenAsync(new PasswordTokenRequest
         {
@@ -30,14 +30,16 @@ internal static class TokenHelper
             Assert.Fail("Token request failed: AccessToken is null");
         }
 
-        return tokenResponse.AccessToken;
+        client.SetBearerToken(tokenResponse.AccessToken);
+
+        return client;
     }
 
-    public static async Task<string> GetTokenAsync(HttpClient client, string url, string clientId, string clientSecret,
+    public static async Task<HttpClient> WithToken(this HttpClient client, string clientId, string clientSecret,
         string scope)
     {
-        var disco = await client.GetDiscoveryDocumentAsync(url);
-        Assert.False(disco.IsError, $"Discovery document is not accessible at {url}: {disco.Error}");
+        var disco = await client.GetDiscoveryDocumentAsync();
+        Assert.False(disco.IsError, $"Discovery document is not accessible: {disco.Error}");
 
         var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
         {
@@ -57,6 +59,7 @@ internal static class TokenHelper
             Assert.Fail("Token request failed: AccessToken is null");
         }
 
-        return tokenResponse.AccessToken;
+        client.SetBearerToken(tokenResponse.AccessToken);
+        return client;
     }
 }

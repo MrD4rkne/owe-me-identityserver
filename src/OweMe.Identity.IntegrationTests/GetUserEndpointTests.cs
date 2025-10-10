@@ -3,7 +3,8 @@ using Duende.IdentityModel.Client;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
@@ -12,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public class GetUserEndpointTests : IAsyncLifetime
+public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebApplicationFactory<Program>>
 {
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
@@ -21,7 +22,7 @@ public class GetUserEndpointTests : IAsyncLifetime
     private const string apiScope = "api1";
     private const string localApiClientId = "local_api_client";
     private const string localApiClientSecret = "local_api_secret";
-    
+
     private readonly Guid nonExistentUserId = Guid.NewGuid();
 
     private static readonly Action<IdentityConfig> _configureIdentityConfig =
@@ -65,28 +66,32 @@ public class GetUserEndpointTests : IAsyncLifetime
         options.SeedData = true;
     };
 
-    private WebApplication _app = null!;
     private Guid existingUserId = Guid.NewGuid();
 
-    public GetUserEndpointTests(ITestOutputHelper testOutputHelper)
+    private readonly WebApplicationFactory<Program> _factory;
+
+    public GetUserEndpointTests(ITestOutputHelper testOutputHelper, WebApplicationFactory<Program> factory)
     {
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
+        _factory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.Configure(_configureIdentityConfig);
+                services.Configure(_configureMigrationsOptions);
+            });
+        });
     }
 
     [Fact]
     public async Task For_ClientWithoutProperScope_Should_ReturnUnauthorized()
     {
         // Arrange
-        var urls = _app.Urls;
-        urls.ShouldNotBeEmpty();
-
-        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        string token = await TokenHelper.GetTokenAsync(client, urls.First(), testUserName, testUserPassword, clientId,
-            clientSecret, apiScope);
-        client.SetBearerToken(token);
+        var client = await _factory.CreateClient()
+            .WithToken(testUserName, testUserPassword, clientId, clientSecret, apiScope);
 
         // Act
-        var response = await client.GetAsync($"{urls.First()}/users/{existingUserId}");
+        var response = await client.GetAsync($"/users/{existingUserId}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -96,16 +101,11 @@ public class GetUserEndpointTests : IAsyncLifetime
     public async Task For_ClientWithProperScope_ShouldReturnResult()
     {
         // Arrange
-        var urls = _app.Urls;
-        urls.ShouldNotBeEmpty();
-
-        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        string token = await TokenHelper.GetTokenAsync(client, urls.First(), localApiClientId, localApiClientSecret,
-            IdentityServerConstants.LocalApi.ScopeName);
-        client.SetBearerToken(token);
+        var client = await _factory.CreateClient()
+            .WithToken(localApiClientId, localApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
 
         // Act
-        var response = await client.GetAsync($"{urls.First()}/users/{existingUserId}");
+        var response = await client.GetAsync($"/users/{existingUserId}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -123,33 +123,26 @@ public class GetUserEndpointTests : IAsyncLifetime
     public async Task For_NonExistingUser_Should_ReturnNotFound()
     {
         // Arrange
-        var urls = _app.Urls;
-        urls.ShouldNotBeEmpty();
-
-        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        string token = await TokenHelper.GetTokenAsync(client, urls.First(), localApiClientId, localApiClientSecret,
-            IdentityServerConstants.LocalApi.ScopeName);
-        client.SetBearerToken(token);
+        var client = await _factory.CreateClient()
+            .WithToken(localApiClientId, localApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
 
         // Act
-        var response = await client.GetAsync($"{urls.First()}/users/{nonExistentUserId}");
+        var response = await client.GetAsync($"/users/{nonExistentUserId}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 
-    private static async Task<Guid> GetUser(string url, string username, string password)
+    private static async Task<Guid> GetUser(WebApplicationFactory<Program> factory, string username, string password)
     {
-        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        string token = await TokenHelper.GetTokenAsync(client, url, username, password, clientId, clientSecret,
-            $"{apiScope} openid profile");
-        client.SetBearerToken(token);
+        var client = await factory.CreateClient()
+            .WithToken(localApiClientId, localApiClientSecret, $"{apiScope} openid profile");
 
         // Get IS user info
         UserInfoRequest userInfoRequest = new()
         {
-            Address = $"{url}/connect/userinfo",
-            Token = token
+            Address = "/connect/userinfo",
+            Token = client.DefaultRequestHeaders.Authorization?.Parameter
         };
 
         var userInfoResponse = await client.GetUserInfoAsync(userInfoRequest);
@@ -163,17 +156,11 @@ public class GetUserEndpointTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _app = await IntegrationTestSetup.Create()
-            .Configure(_configureIdentityConfig)
-            .Configure(_configureMigrationsOptions)
-            .WithDatabase()
-            .StartAppAsync();
-
-        existingUserId = await GetUser(_app.Urls.First(), testUserName, testUserPassword);
+        existingUserId = await GetUser(_factory, testUserName, testUserPassword);
     }
 
     public Task DisposeAsync()
     {
-        return _app is not null ? _app.DisposeAsync().AsTask() : Task.CompletedTask;
+        return Task.CompletedTask;
     }
 }
