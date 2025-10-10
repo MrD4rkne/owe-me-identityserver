@@ -5,7 +5,7 @@ using Testcontainers.PostgreSql;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class ProgramFixture : WebApplicationFactory<ProgramFixture>, IAsyncLifetime
+public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

@@ -11,11 +11,11 @@ using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class StartupTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class StartupTests : IClassFixture<ProgramFixture>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public StartupTests(ITestOutputHelper testOutputHelper, WebApplicationFactory<Program> factory)
+    public StartupTests(ITestOutputHelper testOutputHelper, ProgramFixture factory)
     {
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
         _factory = factory;

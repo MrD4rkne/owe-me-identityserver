@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebApplicationFactory<Program>>
+public sealed class GetUserEndpointTests : IClassFixture<ProgramFixture>
 {
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
@@ -66,11 +66,9 @@ public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebAppl
         options.SeedData = true;
     };
 
-    private Guid existingUserId = Guid.NewGuid();
-
     private readonly WebApplicationFactory<Program> _factory;
 
-    public GetUserEndpointTests(ITestOutputHelper testOutputHelper, WebApplicationFactory<Program> factory)
+    public GetUserEndpointTests(ITestOutputHelper testOutputHelper, ProgramFixture factory)
     {
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
         _factory = factory.WithWebHostBuilder(builder =>
@@ -89,6 +87,7 @@ public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebAppl
         // Arrange
         var client = await _factory.CreateClient()
             .WithToken(testUserName, testUserPassword, clientId, clientSecret, apiScope);
+        var existingUserId = await GetUser(_factory, testUserName, testUserPassword);
 
         // Act
         var response = await client.GetAsync($"/users/{existingUserId}");
@@ -103,6 +102,7 @@ public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebAppl
         // Arrange
         var client = await _factory.CreateClient()
             .WithToken(localApiClientId, localApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
+        var existingUserId = await GetUser(_factory, testUserName, testUserPassword);
 
         // Act
         var response = await client.GetAsync($"/users/{existingUserId}");
@@ -136,7 +136,7 @@ public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebAppl
     private static async Task<Guid> GetUser(WebApplicationFactory<Program> factory, string username, string password)
     {
         var client = await factory.CreateClient()
-            .WithToken(localApiClientId, localApiClientSecret, $"{apiScope} openid profile");
+            .WithToken(username, password, clientId, clientSecret, $"{apiScope} openid profile");
 
         // Get IS user info
         UserInfoRequest userInfoRequest = new()
@@ -152,15 +152,5 @@ public sealed class GetUserEndpointTests : IAsyncLifetime, IClassFixture<WebAppl
         var subClaim = userInfoResponse.Claims.FirstOrDefault(c => c.Type == "sub");
         subClaim.ShouldNotBeNull();
         return Guid.Parse(subClaim.Value);
-    }
-
-    public async Task InitializeAsync()
-    {
-        existingUserId = await GetUser(_factory, testUserName, testUserPassword);
-    }
-
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
     }
 }
