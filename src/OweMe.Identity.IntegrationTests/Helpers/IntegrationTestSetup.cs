@@ -8,8 +8,8 @@ public static class IntegrationTestSetup
     public static void InitGlobalLogging(ITestOutputHelper testOutputHelper)
     {
         Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .WriteTo.TestOutput(testOutputHelper)
-            .CreateBootstrapLogger();
+            .MinimumLevel.Debug()
+            .WriteTo.TestOutput(testOutputHelper, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
     }
 }

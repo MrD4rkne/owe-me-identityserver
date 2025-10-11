@@ -7,11 +7,14 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration()
-    .Enrich.FromLogContext()
-    .Enrich.WithSpan()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateBootstrapLogger();
+if (Log.Logger.GetType().FullName == "Serilog.Core.Pipeline.SilentLogger")
+{
+    Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .Enrich.WithSpan()
+        .ReadFrom.Configuration(builder.Configuration)
+        .CreateBootstrapLogger();
+}
 
 builder.Host.UseSerilog();
 builder.Services.AddSerilog();
