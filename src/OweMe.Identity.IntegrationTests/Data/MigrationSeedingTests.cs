@@ -48,7 +48,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
         ];
     };
 
-    private WebApplicationFactory<Program> _programFixture;
+    private WebApplicationFactory<Program>? _programFixture;
 
     public async Task InitializeAsync()
     {
