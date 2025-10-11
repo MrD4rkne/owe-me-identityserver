@@ -3,7 +3,6 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using OweMe.Identity.IntegrationTests.Helpers;
@@ -18,32 +17,13 @@ namespace OweMe.Identity.IntegrationTests.Setup;
 
 public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : TestWithLoggingBase(outputHelper), IAsyncLifetime
 {
-    private WebApplicationFactory<Program> _programFixture;
-
-    public async Task InitializeAsync()
-    {
-        var programFixture = new ProgramFixture();
-        await programFixture.InitializeAsync();
-
-        _programFixture = programFixture
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services => services.Configure(configureIdentity));
-            });
-    }
-
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
-    }
-
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
     private const string clientId = "client";
     private const string clientSecret = "secret";
     private const string apiScope = "api1";
 
-    private readonly Action<IdentityConfig> configureIdentity = (config) =>
+    private static readonly Action<IdentityConfig> ConfigureIdentity = config =>
     {
         config.ApiScopes = [new ApiScope(apiScope)];
         config.Clients =
@@ -67,13 +47,30 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
         ];
     };
 
+    private WebApplicationFactory<Program> _programFixture;
+
+    public async Task InitializeAsync()
+    {
+        var programFixture = new ProgramFixture();
+        await programFixture.InitializeAsync();
+
+        _programFixture = programFixture
+            .WithWebHostBuilder(builder => { builder.WithConfigure(ConfigureIdentity); });
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     [Fact]
     public async Task Migration_ShouldNotRun_ByDefault()
     {
         // Assert
         try
         {
-            var dbContext = _programFixture.Services.CreateScope().ServiceProvider
+            using var scope = _programFixture.Services.CreateScope();
+            var dbContext = scope.ServiceProvider
                 .GetRequiredService<ApplicationDbContext>();
             _ = await dbContext.Users.FirstOrDefaultAsync();
 
@@ -96,13 +93,10 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
         // Arrange
         var factory = _programFixture.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureServices(services =>
+            builder.WithConfigure<MigrationsOptions>(options =>
             {
-                services.Configure<MigrationsOptions>(options =>
-                {
-                    options.ApplyMigrations = true;
-                    options.SeedData = false;
-                });
+                options.ApplyMigrations = true;
+                options.SeedData = false;
             });
         });
 
@@ -139,44 +133,24 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
         // Let's create the database with migrations, but without seeding
         _ = _programFixture.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureServices(services =>
-                {
-                    services.Configure<MigrationsOptions>(options =>
+                builder.WithConfigure<MigrationsOptions>(options =>
                     {
                         options.ApplyMigrations = true;
                         options.SeedData = false;
-                    });
-                });
-
-                builder.ConfigureAppConfiguration((_, config) =>
-                {
-                    config.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:DefaultConnection"] = connectionString
-                    });
-                });
+                    })
+                    .WithConnectionString(connectionString);
             })
             .CreateClient();
 
         // Act
         var secondApp = _programFixture.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureServices(services =>
-            {
-                services.Configure<MigrationsOptions>(options =>
+            builder.WithConfigure<MigrationsOptions>(options =>
                 {
                     options.ApplyMigrations = false;
                     options.SeedData = true;
-                });
-            });
-
-            builder.ConfigureAppConfiguration((_, config) =>
-            {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:DefaultConnection"] = connectionString
-                });
-            });
+                })
+                .WithConnectionString(connectionString);
         });
 
         _ = secondApp.CreateClient();
@@ -192,13 +166,10 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
         // Arrange
         var app = _ = _programFixture.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureServices(services =>
+            builder.WithConfigure<MigrationsOptions>(options =>
             {
-                services.Configure<MigrationsOptions>(options =>
-                {
-                    options.ApplyMigrations = true;
-                    options.SeedData = true;
-                });
+                options.ApplyMigrations = true;
+                options.SeedData = true;
             });
         });
 
@@ -215,6 +186,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
         var applicationDbContext = serviceProvider
             .GetRequiredService<ApplicationDbContext>();
         applicationDbContext.ShouldNotBeNull();
+
         var users = applicationDbContext.Users.ToListAsync().Result;
         users.Count.ShouldBe(1);
         Assert.Equal(testUserName, users[0].UserName);
