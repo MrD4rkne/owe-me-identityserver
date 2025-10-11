@@ -4,7 +4,6 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
@@ -58,7 +57,7 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
         ];
     };
 
-    private readonly Action<MigrationsOptions> _configureMigrationsOptions = options =>
+    private static readonly Action<MigrationsOptions> ConfigureMigrationsOptions = options =>
     {
         options.ApplyMigrations = true;
         options.SeedData = true;
@@ -71,11 +70,8 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     {
         _factory = factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureServices(services =>
-            {
-                services.Configure(ConfigureIdentityConfig);
-                services.Configure(_configureMigrationsOptions);
-            });
+            builder.WithConfigure(ConfigureMigrationsOptions)
+                .WithConfigure(ConfigureIdentityConfig);
         });
     }
 
