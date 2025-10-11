@@ -19,9 +19,10 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
         return _databaseContainer.StartAsync();
     }
 
-    public new Task DisposeAsync()
+    public new async Task DisposeAsync()
     {
-        return _databaseContainer.DisposeAsync().AsTask();
+        await base.DisposeAsync().ConfigureAwait(false);
+        await _databaseContainer.DisposeAsync().AsTask().ConfigureAwait(false);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
