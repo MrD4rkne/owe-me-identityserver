@@ -9,14 +9,13 @@ using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class StartupTests : TestWithLoggingBase, IClassFixture<ProgramFixture>
+public sealed class StartupTests : IClassFixture<ProgramFixture>
 {
     private readonly ProgramFixture _factory;
 
     public StartupTests(ITestOutputHelper testOutputHelper, ProgramFixture factory)
-        : base(testOutputHelper)
     {
-        _factory = factory;
+        _factory = factory.AddLogging(testOutputHelper);
 
         // Configure the server with migrations options
         _factory.ConfigureTestServices(builder =>

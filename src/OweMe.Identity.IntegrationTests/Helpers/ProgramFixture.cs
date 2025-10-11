@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using OweMe.Identity.IntegrationTests.Helpers;
 using Testcontainers.PostgreSql;
+using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
@@ -43,6 +44,24 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
     public ProgramFixture ConfigureTestServices(Action<IWebHostBuilder> configure)
     {
         _configureTestServices.Add(configure);
+        return this;
+    }
+
+    public ProgramFixture AddLogging(ITestOutputHelper testOutputHelper)
+    {
+        // _configureTestServices.Add(builder =>
+        //     builder.ConfigureServices(services =>
+        //     {
+        //         services.AddSerilog(logger =>
+        //         {
+        //             logger
+        //                 .MinimumLevel.Debug()
+        //                 .WriteTo.TestOutput(testOutputHelper,
+        //                     outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+        //                 .CreateLogger();
+        //         });
+        //     }));
+
         return this;
     }
 }

@@ -12,7 +12,7 @@ using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests.Users;
 
-public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<ProgramFixture>
+public sealed class GetUserEndpointTests : IClassFixture<ProgramFixture>
 {
     private const string TestUserName = "alice";
     private const string TestUserPassword = "Password1#";
@@ -66,7 +66,7 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     private readonly WebApplicationFactory<Program> _factory;
     private readonly Guid _nonExistentUserId = Guid.NewGuid();
 
-    public GetUserEndpointTests(ITestOutputHelper testOutputHelper, ProgramFixture factory) : base(testOutputHelper)
+    public GetUserEndpointTests(ITestOutputHelper testOutputHelper, ProgramFixture factory)
     {
         factory.ConfigureTestServices(builder =>
         {
@@ -74,7 +74,7 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
                 .WithConfigure(ConfigureIdentityConfig);
         });
 
-        _factory = factory;
+        _factory = factory.AddLogging(testOutputHelper);
     }
 
     [Fact]

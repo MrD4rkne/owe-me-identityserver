@@ -14,8 +14,7 @@ using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
-    : TestWithLoggingBase(outputHelper), IAsyncLifetime
+public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : IAsyncLifetime
 {
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
@@ -48,6 +47,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
     };
 
     private readonly ProgramFixture _programFixture = new ProgramFixture()
+        .AddLogging(outputHelper)
         .ConfigureTestServices(builder => { builder.WithConfigure(ConfigureIdentity); });
 
     public async Task InitializeAsync()
@@ -76,7 +76,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
         }
         catch (PostgresException ex)
         {
-            OutputHelper.WriteLine($"Caught expected PostgresException {ex}, database does not exist.");
+            outputHelper.WriteLine($"Caught expected PostgresException {ex}, database does not exist.");
         }
         catch (Exception ex) when (ex is not FailException)
         {
