@@ -3,7 +3,6 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
 using Shouldly;
@@ -14,24 +13,21 @@ namespace OweMe.Identity.IntegrationTests;
 public sealed class StartupTests(ITestOutputHelper testOutputHelper, ProgramFixture factory)
     : TestWithLoggingBase(testOutputHelper), IClassFixture<ProgramFixture>
 {
-    private readonly WebApplicationFactory<Program> _factory = factory;
+    private readonly WebApplicationFactory<Program> _factory = factory
+        .WithWebHostBuilder(builder =>
+        {
+            builder.WithConfigure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = true;
+                options.SeedData = true;
+            });
+        });
 
     [Fact]
     public async Task Test_DiscoveryDocument_Accessible()
     {
         // Arrange
         var client = _factory
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
-                {
-                    services.Configure<MigrationsOptions>(options =>
-                    {
-                        options.ApplyMigrations = true;
-                        options.SeedData = true;
-                    });
-                });
-            })
             .CreateClient();
 
         // Act
@@ -55,40 +51,31 @@ public sealed class StartupTests(ITestOutputHelper testOutputHelper, ProgramFixt
         var client = _factory
             .WithWebHostBuilder(builder =>
             {
-                builder.ConfigureServices(services =>
+                builder.WithConfigure<IdentityConfig>(config =>
                 {
-                    services.Configure<IdentityConfig>(config =>
-                    {
-                        config.ApiScopes =
-                        [
-                            new ApiScope(apiScope),
-                            new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
-                        ];
-                        config.Clients =
-                        [
-                            new Client
-                            {
-                                ClientId = clientId,
-                                ClientSecrets = [new Secret(clientSecret)],
-                                AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                                AllowedScopes = [apiScope, "openid", "profile"]
-                            }
-                        ];
-                        config.Users =
-                        [
-                            new TestUser
-                            {
-                                Username = testUserName,
-                                Password = testUserPassword
-                            }
-                        ];
-                    });
-
-                    services.Configure<MigrationsOptions>(options =>
-                    {
-                        options.ApplyMigrations = true;
-                        options.SeedData = true;
-                    });
+                    config.ApiScopes =
+                    [
+                        new ApiScope(apiScope),
+                        new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
+                    ];
+                    config.Clients =
+                    [
+                        new Client
+                        {
+                            ClientId = clientId,
+                            ClientSecrets = [new Secret(clientSecret)],
+                            AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                            AllowedScopes = [apiScope, "openid", "profile"]
+                        }
+                    ];
+                    config.Users =
+                    [
+                        new TestUser
+                        {
+                            Username = testUserName,
+                            Password = testUserPassword
+                        }
+                    ];
                 });
             })
             .CreateClient();
