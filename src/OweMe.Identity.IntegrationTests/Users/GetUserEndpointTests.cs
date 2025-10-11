@@ -24,38 +24,38 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
 
     private static readonly Action<IdentityConfig> ConfigureIdentityConfig =
         config =>
-    {
-        config.ApiScopes =
-        [
-            new ApiScope(ApiScope),
-            new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
-        ];
-        config.Clients =
-        [
-            new Client
-            {
-                ClientId = ClientId,
-                ClientSecrets = [new Secret(ClientSecret)],
-                AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                AllowedScopes = [ApiScope, "openid", "profile"]
-            },
-            new Client
-            {
-                ClientId = LocalApiClientId,
-                ClientSecrets = [new Secret(LocalApiClientSecret)],
-                AllowedGrantTypes = GrantTypes.ClientCredentials,
-                AllowedScopes = [IdentityServerConstants.LocalApi.ScopeName]
-            }
-        ];
-        config.Users =
-        [
-            new TestUser
-            {
-                Username = TestUserName,
-                Password = TestUserPassword
-            }
-        ];
-    };
+        {
+            config.ApiScopes =
+            [
+                new ApiScope(ApiScope),
+                new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
+            ];
+            config.Clients =
+            [
+                new Client
+                {
+                    ClientId = ClientId,
+                    ClientSecrets = [new Secret(ClientSecret)],
+                    AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                    AllowedScopes = [ApiScope, "openid", "profile"]
+                },
+                new Client
+                {
+                    ClientId = LocalApiClientId,
+                    ClientSecrets = [new Secret(LocalApiClientSecret)],
+                    AllowedGrantTypes = GrantTypes.ClientCredentials,
+                    AllowedScopes = [IdentityServerConstants.LocalApi.ScopeName]
+                }
+            ];
+            config.Users =
+            [
+                new TestUser
+                {
+                    Username = TestUserName,
+                    Password = TestUserPassword
+                }
+            ];
+        };
 
     private static readonly Action<MigrationsOptions> ConfigureMigrationsOptions = options =>
     {
@@ -68,11 +68,13 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
 
     public GetUserEndpointTests(ITestOutputHelper testOutputHelper, ProgramFixture factory) : base(testOutputHelper)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
+        factory.ConfigureTestServices(builder =>
         {
             builder.WithConfigure(ConfigureMigrationsOptions)
                 .WithConfigure(ConfigureIdentityConfig);
         });
+
+        _factory = factory;
     }
 
     [Fact]

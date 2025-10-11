@@ -1,7 +1,6 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -48,15 +47,12 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
         ];
     };
 
-    private WebApplicationFactory<Program>? _programFixture;
+    private readonly ProgramFixture _programFixture = new ProgramFixture()
+        .ConfigureTestServices(builder => { builder.WithConfigure(ConfigureIdentity); });
 
     public async Task InitializeAsync()
     {
-        var programFixture = new ProgramFixture();
-        await programFixture.InitializeAsync();
-
-        _programFixture = programFixture
-            .WithWebHostBuilder(builder => { builder.WithConfigure(ConfigureIdentity); });
+        await _programFixture.InitializeAsync();
     }
 
     public Task DisposeAsync()
