@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 using Testcontainers.PostgreSql;
 
 namespace OweMe.Identity.IntegrationTests;
@@ -10,6 +11,8 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         base.ConfigureWebHost(builder);
+
+        builder.ConfigureServices(services => services.AddSerilog());
 
         builder.ConfigureAppConfiguration((_, config) =>
         {
