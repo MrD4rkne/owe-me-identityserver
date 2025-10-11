@@ -16,20 +16,32 @@ using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests : IClassFixture<ProgramFixture>
+public sealed class MigrationSeedingTests : IAsyncLifetime
 {
     private readonly ITestOutputHelper _testOutputHelper;
-    private readonly WebApplicationFactory<Program> _programFixture;
+    private WebApplicationFactory<Program> _programFixture;
 
-    public MigrationSeedingTests(ITestOutputHelper testOutputHelper, ProgramFixture programFixture)
+    public MigrationSeedingTests(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
+        IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
+    }
+
+    public async Task InitializeAsync()
+    {
+        var programFixture = new ProgramFixture();
+        await programFixture.InitializeAsync();
+
         _programFixture = programFixture
             .WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services => services.Configure(configureIdentity));
             });
-        IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
     }
 
     private const string testUserName = "alice";
@@ -163,8 +175,6 @@ public sealed class MigrationSeedingTests : IClassFixture<ProgramFixture>
                     options.ApplyMigrations = false;
                     options.SeedData = true;
                 });
-
-                services.Configure(configureIdentity);
             });
 
             builder.ConfigureAppConfiguration((_, config) =>
@@ -180,7 +190,6 @@ public sealed class MigrationSeedingTests : IClassFixture<ProgramFixture>
         _ = secondApp.CreateClient();
 
         // Assert
-
         using var scope = secondApp.Services.CreateScope();
         AssertSeedingWorked(scope.ServiceProvider);
     }
