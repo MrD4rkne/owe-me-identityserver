@@ -176,7 +176,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
         });
 
         // Act
-        _ = app.CreateClient();
+        await app.EnsureInitialized();
 
         // Assert
         var serviceProvider = app.Services.CreateScope().ServiceProvider;
