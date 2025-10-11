@@ -1,4 +1,5 @@
-﻿using Xunit.Abstractions;
+﻿using Serilog;
+using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests.Helpers;
 
@@ -8,7 +9,15 @@ public abstract class TestWithLoggingBase
 
     protected TestWithLoggingBase(ITestOutputHelper helper)
     {
-        IntegrationTestSetup.InitGlobalLogging(helper);
         OutputHelper = helper;
+        InitGlobalLogging(helper);
+    }
+
+    private static void InitGlobalLogging(ITestOutputHelper testOutputHelper)
+    {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.TestOutput(testOutputHelper, outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
     }
 }
