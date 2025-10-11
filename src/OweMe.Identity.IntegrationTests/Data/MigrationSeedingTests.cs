@@ -70,7 +70,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
         // Assert
         try
         {
-            using var scope = _programFixture.Services.CreateScope();
+            using var scope = _programFixture!.Services.CreateScope();
             var dbContext = scope.ServiceProvider
                 .GetRequiredService<ApplicationDbContext>();
             _ = await dbContext.Users.FirstOrDefaultAsync();
@@ -92,7 +92,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
     public async Task Seeding_ShouldNotRun_ByDefault()
     {
         // Arrange
-        var factory = _programFixture.WithWebHostBuilder(builder =>
+        var factory = _programFixture!.WithWebHostBuilder(builder =>
         {
             builder.WithConfigure<MigrationsOptions>(options =>
             {
@@ -133,7 +133,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
         var connectionString = databaseContainer.GetConnectionString();
 
         // Let's create the database with migrations, but without seeding
-        await _programFixture.WithWebHostBuilder(builder =>
+        await _programFixture!.WithWebHostBuilder(builder =>
             {
                 builder.WithConfigure<MigrationsOptions>(options =>
                     {
@@ -145,7 +145,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
             .EnsureInitialized();
 
         // Act
-        var secondApp = _programFixture.WithWebHostBuilder(builder =>
+        var secondApp = _programFixture!.WithWebHostBuilder(builder =>
         {
             builder.WithConfigure<MigrationsOptions>(options =>
                 {
@@ -166,7 +166,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
     public async Task SeedingAndMigrations_ShouldRun_WhenEnabled()
     {
         // Arrange
-        var app = _ = _programFixture.WithWebHostBuilder(builder =>
+        var app = _ = _programFixture!.WithWebHostBuilder(builder =>
         {
             builder.WithConfigure<MigrationsOptions>(options =>
             {
