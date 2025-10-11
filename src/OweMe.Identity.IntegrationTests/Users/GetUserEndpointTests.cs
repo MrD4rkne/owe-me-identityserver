@@ -11,41 +11,39 @@ using OweMe.Identity.Server.Setup;
 using Shouldly;
 using Xunit.Abstractions;
 
-namespace OweMe.Identity.IntegrationTests;
+namespace OweMe.Identity.IntegrationTests.Users;
 
 public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<ProgramFixture>
 {
-    private const string testUserName = "alice";
-    private const string testUserPassword = "Password1#";
-    private const string clientId = "client";
-    private const string clientSecret = "secret";
-    private const string apiScope = "api1";
-    private const string localApiClientId = "local_api_client";
-    private const string localApiClientSecret = "local_api_secret";
+    private const string TestUserName = "alice";
+    private const string TestUserPassword = "Password1#";
+    private const string ClientId = "client";
+    private const string ClientSecret = "secret";
+    private const string ApiScope = "api1";
+    private const string LocalApiClientId = "local_api_client";
+    private const string LocalApiClientSecret = "local_api_secret";
 
-    private readonly Guid nonExistentUserId = Guid.NewGuid();
-
-    private static readonly Action<IdentityConfig> _configureIdentityConfig =
+    private static readonly Action<IdentityConfig> ConfigureIdentityConfig =
         config =>
     {
         config.ApiScopes =
         [
-            new ApiScope(apiScope),
+            new ApiScope(ApiScope),
             new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
         ];
         config.Clients =
         [
             new Client
             {
-                ClientId = clientId,
-                ClientSecrets = [new Secret(clientSecret)],
+                ClientId = ClientId,
+                ClientSecrets = [new Secret(ClientSecret)],
                 AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                AllowedScopes = [apiScope, "openid", "profile"]
+                AllowedScopes = [ApiScope, "openid", "profile"]
             },
             new Client
             {
-                ClientId = localApiClientId,
-                ClientSecrets = [new Secret(localApiClientSecret)],
+                ClientId = LocalApiClientId,
+                ClientSecrets = [new Secret(LocalApiClientSecret)],
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 AllowedScopes = [IdentityServerConstants.LocalApi.ScopeName]
             }
@@ -54,8 +52,8 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
         [
             new TestUser
             {
-                Username = testUserName,
-                Password = testUserPassword
+                Username = TestUserName,
+                Password = TestUserPassword
             }
         ];
     };
@@ -67,6 +65,7 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     };
 
     private readonly WebApplicationFactory<Program> _factory;
+    private readonly Guid _nonExistentUserId = Guid.NewGuid();
 
     public GetUserEndpointTests(ITestOutputHelper testOutputHelper, ProgramFixture factory) : base(testOutputHelper)
     {
@@ -74,7 +73,7 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
         {
             builder.ConfigureServices(services =>
             {
-                services.Configure(_configureIdentityConfig);
+                services.Configure(ConfigureIdentityConfig);
                 services.Configure(_configureMigrationsOptions);
             });
         });
@@ -85,8 +84,8 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     {
         // Arrange
         var client = await _factory.CreateClient()
-            .WithToken(testUserName, testUserPassword, clientId, clientSecret, apiScope);
-        var existingUserId = await GetUser(_factory, testUserName, testUserPassword);
+            .WithToken(TestUserName, TestUserPassword, ClientId, ClientSecret, ApiScope);
+        var existingUserId = await GetUser(_factory, TestUserName, TestUserPassword);
 
         // Act
         var response = await client.GetAsync($"/users/{existingUserId}");
@@ -100,8 +99,8 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     {
         // Arrange
         var client = await _factory.CreateClient()
-            .WithToken(localApiClientId, localApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
-        var existingUserId = await GetUser(_factory, testUserName, testUserPassword);
+            .WithToken(LocalApiClientId, LocalApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
+        var existingUserId = await GetUser(_factory, TestUserName, TestUserPassword);
 
         // Act
         var response = await client.GetAsync($"/users/{existingUserId}");
@@ -113,8 +112,8 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
         var obj = JObject.Parse(content);
         obj.ShouldNotBeNull();
         obj["sub"]?.Value<string>()?.ShouldBe(existingUserId.ToString());
-        obj["email"]?.Value<string>()?.ShouldBe(testUserName);
-        obj["userName"]?.Value<string>()?.ShouldBe(testUserName);
+        obj["email"]?.Value<string>()?.ShouldBe(TestUserName);
+        obj["userName"]?.Value<string>()?.ShouldBe(TestUserName);
         obj.Properties().Count().ShouldBe(3, "Response should only contain sub, email and userName");
     }
 
@@ -123,10 +122,10 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     {
         // Arrange
         var client = await _factory.CreateClient()
-            .WithToken(localApiClientId, localApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
+            .WithToken(LocalApiClientId, LocalApiClientSecret, IdentityServerConstants.LocalApi.ScopeName);
 
         // Act
-        var response = await client.GetAsync($"/users/{nonExistentUserId}");
+        var response = await client.GetAsync($"/users/{_nonExistentUserId}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -135,7 +134,7 @@ public sealed class GetUserEndpointTests : TestWithLoggingBase, IClassFixture<Pr
     private static async Task<Guid> GetUser(WebApplicationFactory<Program> factory, string username, string password)
     {
         var client = await factory.CreateClient()
-            .WithToken(username, password, clientId, clientSecret, $"{apiScope} openid profile");
+            .WithToken(username, password, ClientId, ClientSecret, $"{ApiScope} openid profile");
 
         // Get IS user info
         UserInfoRequest userInfoRequest = new()
