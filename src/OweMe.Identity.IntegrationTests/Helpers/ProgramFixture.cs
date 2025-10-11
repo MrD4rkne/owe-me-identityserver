@@ -36,7 +36,7 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
         return _databaseContainer.StartAsync();
     }
 
-    public Task DisposeAsync()
+    public new Task DisposeAsync()
     {
         return _databaseContainer.DisposeAsync().AsTask();
     }
