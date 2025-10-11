@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Duende.IdentityServer.EntityFramework.Options;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using OweMe.Identity.IntegrationTests.Helpers;
 using Testcontainers.PostgreSql;
 
 namespace OweMe.Identity.IntegrationTests;
@@ -19,10 +21,9 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
         return _databaseContainer.StartAsync();
     }
 
-    public new async Task DisposeAsync()
+    public new Task DisposeAsync()
     {
-        await base.DisposeAsync().ConfigureAwait(false);
-        await _databaseContainer.DisposeAsync().AsTask().ConfigureAwait(false);
+        return _databaseContainer.DisposeAsync().AsTask();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -36,6 +37,11 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
             {
                 ["ConnectionStrings:DefaultConnection"] = connectionString
             });
+        });
+
+        builder.WithConfigure<OperationalStoreOptions>(options =>
+        {
+            options.EnableTokenCleanup = false; // Disable token cleanup during tests
         });
     }
 }
