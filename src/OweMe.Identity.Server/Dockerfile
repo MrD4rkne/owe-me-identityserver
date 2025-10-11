@@ -31,7 +31,11 @@ RUN dotnet build "OweMe.Identity.Server.csproj" -c "$BUILD_CONFIGURATION" --no-r
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "OweMe.Identity.Server.csproj" -c "$BUILD_CONFIGURATION" --no-restore -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "OweMe.Identity.Server.csproj" \
+    -c "$BUILD_CONFIGURATION" \
+    --no-restore  \
+    -o /app/publish \
+    /p:UseAppHost=false
 
 FROM base AS final
 USER $APP_UID
