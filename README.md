@@ -2,6 +2,30 @@
 
 # Owe me identity server
 
+## Technologies
+
+- **.NET 9.0**: Core framework for building the API.
+- **PostgreSQL**: Database for data persistence.
+- **Docker**: Containerization for development and deployment.
+- **GitHub Actions**: CI/CD pipeline for automated builds and tests.
+
+## Development
+
+### Prerequisites
+- .NET 9.0 SDK
+- Docker (for local development)
+- PostgreSQL (via Docker Compose)
+
+### Local Setup
+```bash
+# Clone and navigate the ecosystem
+git clone https://github.com/MrD4rkne/oweme-ecosystem/
+cd owe-me-identityserver
+
+# Start
+docker compose -f ../compose.yaml -f compose.override.yaml up --build
+```
+
 ## Configuration
 
 ### Connection string

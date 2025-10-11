@@ -1,44 +1,83 @@
 ﻿using Duende.IdentityModel.Client;
+using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
 using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
+using Shouldly;
 using Xunit.Abstractions;
 
 namespace OweMe.Identity.IntegrationTests;
 
-public sealed class StartupTests
+public sealed class StartupTests : IClassFixture<ProgramFixture>
 {
-    public StartupTests(ITestOutputHelper testOutputHelper)
+    private readonly ProgramFixture _factory;
+
+    public StartupTests(ITestOutputHelper testOutputHelper, ProgramFixture factory)
     {
-        IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
+        _factory = factory.AddLogging(testOutputHelper);
+
+        // Configure the server with migrations options
+        _factory.ConfigureTestServices(builder =>
+        {
+            builder.WithConfigure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = true;
+                options.SeedData = true;
+            });
+
+            // Configure identity options for all tests
+            builder.WithConfigure<IdentityConfig>(config =>
+            {
+                const string apiScope = "api1";
+                const string clientId = "client";
+                const string clientSecret = "secret";
+                const string testUserName = "alice";
+                const string testUserPassword = "Password1#";
+
+                config.ApiScopes =
+                [
+                    new ApiScope(apiScope),
+                    new ApiScope(IdentityServerConstants.LocalApi.ScopeName)
+                ];
+
+                config.Clients =
+                [
+                    new Client
+                    {
+                        ClientId = clientId,
+                        ClientSecrets = [new Secret(clientSecret)],
+                        AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
+                        AllowedScopes = [apiScope, "openid", "profile"]
+                    }
+                ];
+
+                config.Users =
+                [
+                    new TestUser
+                    {
+                        Username = testUserName,
+                        Password = testUserPassword
+                    }
+                ];
+            });
+        });
     }
-    
+
     [Fact]
     public async Task Test_DiscoveryDocument_Accessible()
     {
-        // Act
-        var app = await IntegrationTestSetup.Create()
-            .Configure<MigrationsOptions>(options =>
-            {
-                options.ApplyMigrations = true;
-                options.SeedData = false;
-            })
-            .WithDatabase()
-            .StartAppAsync();
-        
-        // Assert
-        var urls = app!.Urls;
-        Assert.NotEmpty(urls);
+        // Arrange
+        var client = _factory.CreateClient();
 
-        foreach (var url in urls)
-        {
-            var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-            var disco = await client.GetDiscoveryDocumentAsync(urls.First());
-            Assert.False(disco.IsError, $"Discovery document is not accessible at {url}: {disco.Error}");
-        }
+        // Act
+        var disco = await client.GetDiscoveryDocumentAsync();
+
+        // Assert
+        Assert.False(disco.IsError, $"Discovery document is not accessible: {disco.Error}");
+        Assert.NotNull(disco.TokenEndpoint);
     }
-    
+
     [Fact]
     public async Task After_Seeding_TestUser_Can_Request_Token()
     {
@@ -49,46 +88,14 @@ public sealed class StartupTests
         const string clientSecret = "secret";
         const string apiScope = "api1";
 
-        var app = await IntegrationTestSetup.Create()
-            .Configure<IdentityConfig>(config =>
-        {
-            config.ApiScopes = [new ApiScope(apiScope)];
-            config.Clients =
-            [
-                new Client
-                {
-                    ClientId = clientId,
-                    ClientSecrets = [new Secret(clientSecret)],
-                    AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
-                    AllowedScopes = [apiScope]
-                }
-            ];
-            config.Users =
-            [
-                new TestUser
-                {
-                    Username = testUserName,
-                    Password = testUserPassword,
-                    SubjectId = Guid.NewGuid().ToString()
-                }
-            ];
-        })
-            .Configure<MigrationsOptions>(options =>
-        {
-            options.ApplyMigrations = true;
-            options.SeedData = true;
-        })
-            .WithDatabase()
-            .StartAppAsync();
+        var client = _factory.CreateClient();
 
-        var urls = app.Urls;
-        Assert.NotEmpty(urls);
-        
-        var client = UnsecureHttpClientFactory.CreateUnsecureClient();
-        
         // Act
-        string token = await TokenHelper.GetTokenAsync(client, urls.First(), testUserName, testUserPassword,
-            clientId, clientSecret, apiScope);
-        Assert.NotNull(token);
+        client = await client.WithToken(testUserName, testUserPassword, clientId, clientSecret, apiScope);
+
+        // Assert
+        client.DefaultRequestHeaders.Authorization.ShouldNotBeNull();
+        client.DefaultRequestHeaders.Authorization!.Scheme.ShouldBe("Bearer");
+        client.DefaultRequestHeaders.Authorization.Parameter.ShouldNotBeNullOrEmpty();
     }
 }

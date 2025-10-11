@@ -25,18 +25,19 @@ public sealed class DatabaseSeeder(
     internal async Task InitializeDatabase(CancellationToken cancellationToken = default)
     {
         logger.LogInformation("Seeding database with identity configuration");
-        
+
         using var serviceScope = serviceScopeFactory.CreateScope();
         var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
         var identityConfig = identityOptions.Value;
-        
+
         await SeedClients(context.Clients, identityConfig);
         await SeedIdentityResources(context.IdentityResources, identityConfig);
         await SeedApiResources(context.ApiScopes, identityConfig);
-        
+
         logger.LogDebug("Saving changes to the database");
-        _ = await context.SaveChangesAsync(cancellationToken);
-        
+        var rowsAffected = await context.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Database seeding complete, {RowsAffected} rows affected", rowsAffected);
+
         await SeedUsers(identityConfig.Users, cancellationToken);
     }
 
@@ -47,7 +48,7 @@ public sealed class DatabaseSeeder(
     {
         using var serviceScope = serviceScopeFactory.CreateScope();
         var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        
+
         logger.LogInformation("Seeding database with test users");
 
         foreach (var user in users)
@@ -62,7 +63,7 @@ public sealed class DatabaseSeeder(
             if (! await userManager.Users.AnyAsync(u => u.UserName == testUser.UserName, cancellationToken))
             {
                 logger.LogDebug("Creating test user {Username}", testUser.UserName);
-                
+
                 var result = await userManager.CreateAsync(testUser, user.Password);
                 if (result.Succeeded)
                 {
@@ -79,7 +80,7 @@ public sealed class DatabaseSeeder(
             }
         }
     }
-    
+
     private Task SeedClients(DbSet<Client> clients, IdentityConfig identityConfig)
     {
         logger.LogDebug("Seeding Clients");
@@ -102,7 +103,7 @@ public sealed class DatabaseSeeder(
             }).ToList();
         return clients.AddRangeAsync(clientsWithSecrets);
     }
-    
+
     private Task SeedIdentityResources(DbSet<IdentityResource> identityResources, IdentityConfig identityConfig)
     {
         logger.LogDebug("Seeding Identity Resources");
@@ -111,7 +112,7 @@ public sealed class DatabaseSeeder(
             .Where(resourceEntity => !identityResources.Any(r => r.Name == resourceEntity.Name));
         return identityResources.AddRangeAsync(identityResourcesToAdd);
     }
-    
+
     private Task SeedApiResources(DbSet<ApiScope> scopes, IdentityConfig identityConfig)
     {
         logger.LogDebug("Seeding Api Resources");

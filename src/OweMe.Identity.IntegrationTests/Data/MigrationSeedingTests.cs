@@ -8,28 +8,21 @@ using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Persistence;
 using Shouldly;
+using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests
+public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : IAsyncLifetime
 {
-    private readonly ITestOutputHelper _testOutputHelper;
-
-    public MigrationSeedingTests(ITestOutputHelper testOutputHelper)
-    {
-        _testOutputHelper = testOutputHelper;
-        IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
-    }
-    
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
     private const string clientId = "client";
     private const string clientSecret = "secret";
     private const string apiScope = "api1";
-    
-    private readonly Action<IdentityConfig> configureIdentity = (config) =>
+
+    private static readonly Action<IdentityConfig> ConfigureIdentity = config =>
     {
         config.ApiScopes = [new ApiScope(apiScope)];
         config.Clients =
@@ -52,20 +45,29 @@ public sealed class MigrationSeedingTests
             }
         ];
     };
-    
+
+    private readonly ProgramFixture _programFixture = new ProgramFixture()
+        .AddLogging(outputHelper)
+        .ConfigureTestServices(builder => { builder.WithConfigure(ConfigureIdentity); });
+
+    public async Task InitializeAsync()
+    {
+        await _programFixture.InitializeAsync();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     [Fact]
     public async Task Migration_ShouldNotRun_ByDefault()
     {
-        // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .WithDatabase()
-            .StartAppAsync();
-        
         // Assert
         try
         {
-            var dbContext = app.Services.CreateScope().ServiceProvider
+            using var scope = _programFixture!.Services.CreateScope();
+            var dbContext = scope.ServiceProvider
                 .GetRequiredService<ApplicationDbContext>();
             _ = await dbContext.Users.FirstOrDefaultAsync();
 
@@ -74,31 +76,31 @@ public sealed class MigrationSeedingTests
         }
         catch (PostgresException ex)
         {
-            _testOutputHelper.WriteLine($"Caught expected PostgresException {ex}, database does not exist.");
+            outputHelper.WriteLine($"Caught expected PostgresException {ex}, database does not exist.");
         }
         catch (Exception ex) when (ex is not FailException)
         {
             Assert.Fail("Unexpected exception type caught: " + ex.GetType());
         }
     }
-    
+
     [Fact]
     public async Task Seeding_ShouldNotRun_ByDefault()
     {
         // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .Configure<MigrationsOptions>(options =>
+        var factory = _programFixture!.WithWebHostBuilder(builder =>
         {
-            options.ApplyMigrations = true;
-        })
-            .WithDatabase()
-            .StartAppAsync();
-        
+            builder.WithConfigure<MigrationsOptions>(options =>
+            {
+                options.ApplyMigrations = true;
+                options.SeedData = false;
+            });
+        });
+
         // Assert
-        var serviceProvider = app.Services.CreateScope().ServiceProvider;
+        var serviceProvider = factory.Services.CreateScope().ServiceProvider;
         serviceProvider.ShouldNotBeNull();
-        
+
         var applicationDbContext = serviceProvider
             .GetRequiredService<ApplicationDbContext>();
         applicationDbContext.ShouldNotBeNull();
@@ -106,57 +108,71 @@ public sealed class MigrationSeedingTests
 
         var configurationDbContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
         configurationDbContext.ShouldNotBeNull();
-        
+
         (await configurationDbContext.Clients.ToListAsync()).ShouldBeEmpty("Clients shouldn't be seeded");
         (await configurationDbContext.ApiScopes.ToListAsync()).ShouldBeEmpty("ApiScopes shouldn't be seeded");
-        (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty("IdentityResources shouldn't be seeded");
+        (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty(
+            "IdentityResources shouldn't be seeded");
     }
 
     [Fact]
     public async Task Seeding_ShouldRun_EvenWithoutMigrations()
     {
         // Arrange
-        var postgresContainer = AppBuilder.CreatePostgresSqlContainer();
-        await postgresContainer.StartAsync();
+        await using var databaseContainer = new PostgreSqlBuilder()
+            .WithDatabase("testdb")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .WithPortBinding(5432, true)
+            .Build();
+        await databaseContainer.StartAsync();
+        var connectionString = databaseContainer.GetConnectionString();
 
         // Let's create the database with migrations, but without seeding
-        _ = await IntegrationTestSetup.Create()
-            .Configure<MigrationsOptions>(options =>
+        await _programFixture!.WithWebHostBuilder(builder =>
             {
-                options.ApplyMigrations = true;
-                options.SeedData = false;
+                builder.WithConfigure<MigrationsOptions>(options =>
+                    {
+                        options.ApplyMigrations = true;
+                        options.SeedData = false;
+                    })
+                    .WithConnectionString(connectionString);
             })
-            .WithConnectionString(postgresContainer.GetConnectionString())
-            .StartAppAsync();
+            .EnsureInitialized();
+
+        // Act
+        var secondApp = _programFixture!.WithWebHostBuilder(builder =>
+        {
+            builder.WithConfigure<MigrationsOptions>(options =>
+                {
+                    options.ApplyMigrations = false;
+                    options.SeedData = true;
+                })
+                .WithConnectionString(connectionString);
+        });
+
+        await secondApp.EnsureInitialized();
 
         // Assert
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .Configure<MigrationsOptions>(options =>
-            {
-                options.ApplyMigrations = false;
-                options.SeedData = true;
-            })
-            .WithConnectionString(postgresContainer.GetConnectionString())
-            .StartAppAsync();
-
-        var serviceProvider = app.Services.CreateScope().ServiceProvider;
-        AssertSeedingWorked(serviceProvider);
+        using var scope = secondApp.Services.CreateScope();
+        AssertSeedingWorked(scope.ServiceProvider);
     }
 
     [Fact]
     public async Task SeedingAndMigrations_ShouldRun_WhenEnabled()
     {
         // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .Configure<MigrationsOptions>(options =>
+        var app = _ = _programFixture!.WithWebHostBuilder(builder =>
+        {
+            builder.WithConfigure<MigrationsOptions>(options =>
             {
                 options.ApplyMigrations = true;
                 options.SeedData = true;
-            })
-            .WithDatabase()
-            .StartAppAsync();
+            });
+        });
+
+        // Act
+        await app.EnsureInitialized();
 
         // Assert
         var serviceProvider = app.Services.CreateScope().ServiceProvider;
@@ -168,6 +184,7 @@ public sealed class MigrationSeedingTests
         var applicationDbContext = serviceProvider
             .GetRequiredService<ApplicationDbContext>();
         applicationDbContext.ShouldNotBeNull();
+
         var users = applicationDbContext.Users.ToListAsync().Result;
         users.Count.ShouldBe(1);
         Assert.Equal(testUserName, users[0].UserName);

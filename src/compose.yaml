@@ -1,9 +1,0 @@
-﻿services:
-  oweme.identity.server:
-    image: oweme.identity.server
-    build:
-      context: .
-      dockerfile: OweMe.Identity.Server/Dockerfile
-    ports:
-        - "8080:8080"
-        - "8081:8081"
