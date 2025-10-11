@@ -141,6 +141,7 @@ public sealed class MigrationSeedingTests : IAsyncLifetime
             .WithPortBinding(5432, true)
             .Build();
         await databaseContainer.StartAsync();
+        var connectionString = databaseContainer.GetConnectionString();
 
         // Let's create the database with migrations, but without seeding
         _ = _programFixture.WithWebHostBuilder(builder =>
@@ -156,7 +157,6 @@ public sealed class MigrationSeedingTests : IAsyncLifetime
 
                 builder.ConfigureAppConfiguration((_, config) =>
                 {
-                    string? connectionString = databaseContainer.GetConnectionString();
                     config.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:DefaultConnection"] = connectionString
@@ -179,7 +179,6 @@ public sealed class MigrationSeedingTests : IAsyncLifetime
 
             builder.ConfigureAppConfiguration((_, config) =>
             {
-                string? connectionString = databaseContainer.GetConnectionString();
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:DefaultConnection"] = connectionString
