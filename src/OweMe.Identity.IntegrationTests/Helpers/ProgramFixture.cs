@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Duende.IdentityServer.EntityFramework.Options;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OweMe.Identity.IntegrationTests.Helpers;
+using Serilog;
 using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
 
@@ -35,6 +37,8 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
         {
             configureTestService(builder);
         }
+
+        builder.WithConfigure<OperationalStoreOptions>(options => { options.EnableTokenCleanup = false; });
     }
 
     /// <summary>
@@ -49,19 +53,14 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
 
     public ProgramFixture AddLogging(ITestOutputHelper testOutputHelper)
     {
-        // _configureTestServices.Add(builder =>
-        //     builder.ConfigureServices(services =>
-        //     {
-        //         services.AddSerilog(logger =>
-        //         {
-        //             logger
-        //                 .MinimumLevel.Debug()
-        //                 .WriteTo.TestOutput(testOutputHelper,
-        //                     outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-        //                 .CreateLogger();
-        //         });
-        //     }));
-
-        return this;
+        return ConfigureTestServices(configure => configure.ConfigureServices(services =>
+        {
+            services.AddSerilog(
+                new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.TestOutput(testOutputHelper,
+                        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                    .CreateLogger());
+        }));
     }
 }
