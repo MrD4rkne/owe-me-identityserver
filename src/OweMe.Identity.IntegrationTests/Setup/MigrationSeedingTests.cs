@@ -10,6 +10,7 @@ using OweMe.Identity.IntegrationTests.Helpers;
 using OweMe.Identity.Server.Setup;
 using OweMe.Identity.Server.Users.Persistence;
 using Shouldly;
+using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -121,7 +122,12 @@ public sealed class MigrationSeedingTests : IClassFixture<ProgramFixture>
     public async Task Seeding_ShouldRun_EvenWithoutMigrations()
     {
         // Arrange
-        var databaseContainer = AppBuilder.CreatePostgresSqlContainer();
+        await using var databaseContainer = new PostgreSqlBuilder()
+            .WithDatabase("testdb")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .WithPortBinding(5432, true)
+            .Build();
         await databaseContainer.StartAsync();
 
         // Let's create the database with migrations, but without seeding
