@@ -1,7 +1,9 @@
 ﻿using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Test;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using OweMe.Identity.IntegrationTests.Helpers;
@@ -13,22 +15,28 @@ using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests
+public sealed class MigrationSeedingTests : IClassFixture<ProgramFixture>
 {
     private readonly ITestOutputHelper _testOutputHelper;
+    private readonly WebApplicationFactory<Program> _programFixture;
 
-    public MigrationSeedingTests(ITestOutputHelper testOutputHelper)
+    public MigrationSeedingTests(ITestOutputHelper testOutputHelper, ProgramFixture programFixture)
     {
         _testOutputHelper = testOutputHelper;
+        _programFixture = programFixture
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services => services.Configure(configureIdentity));
+            });
         IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
     }
-    
+
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
     private const string clientId = "client";
     private const string clientSecret = "secret";
     private const string apiScope = "api1";
-    
+
     private readonly Action<IdentityConfig> configureIdentity = (config) =>
     {
         config.ApiScopes = [new ApiScope(apiScope)];
@@ -52,20 +60,14 @@ public sealed class MigrationSeedingTests
             }
         ];
     };
-    
+
     [Fact]
     public async Task Migration_ShouldNotRun_ByDefault()
     {
-        // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .WithDatabase()
-            .StartAppAsync();
-        
         // Assert
         try
         {
-            var dbContext = app.Services.CreateScope().ServiceProvider
+            var dbContext = _programFixture.Services.CreateScope().ServiceProvider
                 .GetRequiredService<ApplicationDbContext>();
             _ = await dbContext.Users.FirstOrDefaultAsync();
 
@@ -81,24 +83,27 @@ public sealed class MigrationSeedingTests
             Assert.Fail("Unexpected exception type caught: " + ex.GetType());
         }
     }
-    
+
     [Fact]
     public async Task Seeding_ShouldNotRun_ByDefault()
     {
         // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .Configure<MigrationsOptions>(options =>
+        var factory = _programFixture.WithWebHostBuilder(builder =>
         {
-            options.ApplyMigrations = true;
-        })
-            .WithDatabase()
-            .StartAppAsync();
-        
+            builder.ConfigureServices(services =>
+            {
+                services.Configure<MigrationsOptions>(options =>
+                {
+                    options.ApplyMigrations = true;
+                    options.SeedData = false;
+                });
+            });
+        });
+
         // Assert
-        var serviceProvider = app.Services.CreateScope().ServiceProvider;
+        var serviceProvider = factory.Services.CreateScope().ServiceProvider;
         serviceProvider.ShouldNotBeNull();
-        
+
         var applicationDbContext = serviceProvider
             .GetRequiredService<ApplicationDbContext>();
         applicationDbContext.ShouldNotBeNull();
@@ -106,7 +111,7 @@ public sealed class MigrationSeedingTests
 
         var configurationDbContext = serviceProvider.GetRequiredService<ConfigurationDbContext>();
         configurationDbContext.ShouldNotBeNull();
-        
+
         (await configurationDbContext.Clients.ToListAsync()).ShouldBeEmpty("Clients shouldn't be seeded");
         (await configurationDbContext.ApiScopes.ToListAsync()).ShouldBeEmpty("ApiScopes shouldn't be seeded");
         (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty("IdentityResources shouldn't be seeded");
@@ -116,47 +121,82 @@ public sealed class MigrationSeedingTests
     public async Task Seeding_ShouldRun_EvenWithoutMigrations()
     {
         // Arrange
-        var postgresContainer = AppBuilder.CreatePostgresSqlContainer();
-        await postgresContainer.StartAsync();
+        var databaseContainer = AppBuilder.CreatePostgresSqlContainer();
+        await databaseContainer.StartAsync();
 
         // Let's create the database with migrations, but without seeding
-        _ = await IntegrationTestSetup.Create()
-            .Configure<MigrationsOptions>(options =>
+        _ = _programFixture.WithWebHostBuilder(builder =>
             {
-                options.ApplyMigrations = true;
-                options.SeedData = false;
+                builder.ConfigureServices(services =>
+                {
+                    services.Configure<MigrationsOptions>(options =>
+                    {
+                        options.ApplyMigrations = true;
+                        options.SeedData = false;
+                    });
+                });
+
+                builder.ConfigureAppConfiguration((_, config) =>
+                {
+                    string? connectionString = databaseContainer.GetConnectionString();
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:DefaultConnection"] = connectionString
+                    });
+                });
             })
-            .WithConnectionString(postgresContainer.GetConnectionString())
-            .StartAppAsync();
+            .CreateClient();
+
+        // Act
+        var secondApp = _programFixture.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.Configure<MigrationsOptions>(options =>
+                {
+                    options.ApplyMigrations = false;
+                    options.SeedData = true;
+                });
+
+                services.Configure(configureIdentity);
+            });
+
+            builder.ConfigureAppConfiguration((_, config) =>
+            {
+                string? connectionString = databaseContainer.GetConnectionString();
+                config.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["ConnectionStrings:DefaultConnection"] = connectionString
+                });
+            });
+        });
+
+        _ = secondApp.CreateClient();
 
         // Assert
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .Configure<MigrationsOptions>(options =>
-            {
-                options.ApplyMigrations = false;
-                options.SeedData = true;
-            })
-            .WithConnectionString(postgresContainer.GetConnectionString())
-            .StartAppAsync();
 
-        var serviceProvider = app.Services.CreateScope().ServiceProvider;
-        AssertSeedingWorked(serviceProvider);
+        using var scope = secondApp.Services.CreateScope();
+        AssertSeedingWorked(scope.ServiceProvider);
     }
 
     [Fact]
     public async Task SeedingAndMigrations_ShouldRun_WhenEnabled()
     {
         // Arrange
-        var app = await IntegrationTestSetup.Create()
-            .Configure(configureIdentity)
-            .Configure<MigrationsOptions>(options =>
+        var app = _ = _programFixture.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
             {
-                options.ApplyMigrations = true;
-                options.SeedData = true;
-            })
-            .WithDatabase()
-            .StartAppAsync();
+                services.Configure<MigrationsOptions>(options =>
+                {
+                    options.ApplyMigrations = true;
+                    options.SeedData = true;
+                });
+            });
+        });
+
+        // Act
+        _ = app.CreateClient();
 
         // Assert
         var serviceProvider = app.Services.CreateScope().ServiceProvider;
