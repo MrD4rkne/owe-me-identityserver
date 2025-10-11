@@ -16,16 +16,9 @@ using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests : IAsyncLifetime
+public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : TestWithLoggingBase(outputHelper), IAsyncLifetime
 {
-    private readonly ITestOutputHelper _testOutputHelper;
     private WebApplicationFactory<Program> _programFixture;
-
-    public MigrationSeedingTests(ITestOutputHelper testOutputHelper)
-    {
-        _testOutputHelper = testOutputHelper;
-        IntegrationTestSetup.InitGlobalLogging(testOutputHelper);
-    }
 
     public async Task InitializeAsync()
     {
@@ -89,7 +82,7 @@ public sealed class MigrationSeedingTests : IAsyncLifetime
         }
         catch (PostgresException ex)
         {
-            _testOutputHelper.WriteLine($"Caught expected PostgresException {ex}, database does not exist.");
+            OutputHelper.WriteLine($"Caught expected PostgresException {ex}, database does not exist.");
         }
         catch (Exception ex) when (ex is not FailException)
         {
