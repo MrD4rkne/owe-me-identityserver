@@ -15,7 +15,8 @@ using Xunit.Sdk;
 
 namespace OweMe.Identity.IntegrationTests.Setup;
 
-public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : TestWithLoggingBase(outputHelper), IAsyncLifetime
+public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper)
+    : TestWithLoggingBase(outputHelper), IAsyncLifetime
 {
     private const string testUserName = "alice";
     private const string testUserPassword = "Password1#";
@@ -114,7 +115,8 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
 
         (await configurationDbContext.Clients.ToListAsync()).ShouldBeEmpty("Clients shouldn't be seeded");
         (await configurationDbContext.ApiScopes.ToListAsync()).ShouldBeEmpty("ApiScopes shouldn't be seeded");
-        (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty("IdentityResources shouldn't be seeded");
+        (await configurationDbContext.IdentityResources.ToListAsync()).ShouldBeEmpty(
+            "IdentityResources shouldn't be seeded");
     }
 
     [Fact]
@@ -131,7 +133,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
         var connectionString = databaseContainer.GetConnectionString();
 
         // Let's create the database with migrations, but without seeding
-        _ = _programFixture.WithWebHostBuilder(builder =>
+        await _programFixture.WithWebHostBuilder(builder =>
             {
                 builder.WithConfigure<MigrationsOptions>(options =>
                     {
@@ -140,7 +142,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
                     })
                     .WithConnectionString(connectionString);
             })
-            .CreateClient();
+            .EnsureInitialized();
 
         // Act
         var secondApp = _programFixture.WithWebHostBuilder(builder =>
@@ -153,7 +155,7 @@ public sealed class MigrationSeedingTests(ITestOutputHelper outputHelper) : Test
                 .WithConnectionString(connectionString);
         });
 
-        _ = secondApp.CreateClient();
+        await secondApp.EnsureInitialized();
 
         // Assert
         using var scope = secondApp.Services.CreateScope();
