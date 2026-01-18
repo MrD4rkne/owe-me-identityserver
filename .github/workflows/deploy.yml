@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0  # Full history for versioning
 
@@ -53,7 +53,7 @@ jobs:
 
     steps:
       - name: Download published artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.PUBLISH_ARTIFACT }}
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
