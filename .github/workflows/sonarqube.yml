@@ -7,22 +7,26 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+env:
+  CACHE_DIR: "$HOME/.sonar"
+  JAVA_VERSION: "17"
+
 jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up JDK 17
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v5
         with:
-          java-version: 17
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'zulu'
 
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0  # Full history for SonarCloud analysis
+          fetch-depth: 0  # Full history for SonarCloud analysis and Nbgv versioning
 
       - name: Define Cache Directory Variable
         run: echo "CACHE_DIR=$HOME/.sonar" >> $GITHUB_ENV
@@ -48,15 +52,14 @@ jobs:
           # Create the cache directory if it doesn't exist
           mkdir -p ${{ env.CACHE_DIR }}/scanner
           dotnet tool update dotnet-sonarscanner --tool-path ${{ env.CACHE_DIR }}/scanner
-          
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
 
-      - name: Install dotcover tool
-        run: |
-          dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7
+      - name: Install dotcover
+        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7 # Version before removing dotnet-cover
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
