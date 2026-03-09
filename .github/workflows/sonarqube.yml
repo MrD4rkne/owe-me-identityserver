@@ -62,7 +62,7 @@ jobs:
         run: dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7 # Version before removing dotnet-cover
           
       - name: Setup docker
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - uses: dotnet/nbgv@master
         id: nbgv
