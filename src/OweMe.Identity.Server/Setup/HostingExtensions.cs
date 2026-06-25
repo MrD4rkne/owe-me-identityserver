@@ -7,7 +7,6 @@ using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Domain;
 using OweMe.Identity.Server.Users.Persistence;
-using Serilog;
 
 namespace OweMe.Identity.Server.Setup;
 
@@ -68,8 +67,6 @@ public static class HostingExtensions
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
-        app.UseSerilogRequestLogging();
-
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using OweMe.Identity.IntegrationTests.Helpers;
-using Serilog;
 using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
 
@@ -49,18 +48,5 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
     {
         _configureTestServices.Add(configure);
         return this;
-    }
-
-    public ProgramFixture AddLogging(ITestOutputHelper testOutputHelper)
-    {
-        return ConfigureTestServices(configure => configure.ConfigureServices(services =>
-        {
-            services.AddSerilog(
-                new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .WriteTo.TestOutput(testOutputHelper,
-                        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                    .CreateLogger());
-        }));
     }
 }
