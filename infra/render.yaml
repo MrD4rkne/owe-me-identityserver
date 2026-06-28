@@ -9,7 +9,7 @@ services:
     envVars:
       - key: Database__ConnectionString
         fromDatabase:
-          name: owe-me-identity-db
+          name: owe-me-db # we're using the same db as the API service, because of FREE plan limitations
           property: connectionString
       - key: Migrations__ApplyMigrations
         value: "true"
@@ -49,8 +49,3 @@ services:
         value: alice
       - key: OweMe__Identity__Users__0__Password
         sync: false
-
-databases:
-  - name: owe-me-identity-db
-    region: frankfurt
-    plan: free
