@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: owe-me-identity
+    runtime: image
+    region: frankfurt
+    plan: free
+    image:
+      url: ghcr.io/mrd4rkne/oweme-identity/oweme-identity:1.0.28-g3ef66ae218
+    envVars:
+      - key: Database__ConnectionString
+        fromDatabase:
+          name: owe-me-identity-db
+          property: connectionString
+      - key: Migrations__ApplyMigrations
+        value: "true"
+      - key: Migrations__SeedData
+        value: "true"
+      - fromGroup: dotnet-app-defaults
+
+databases:
+  - name: owe-me-identity-db
+    region: frankfurt
+    plan: free
