@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     image:
-      url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.28-g5f8c9dbad5
+      url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.39-ge7b2356725
 
     envVars:
       - key: ConnectionStrings__DefaultConnection__Host
