@@ -8,28 +8,7 @@ services:
       url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.28-g5f8c9dbad5
     envVars:
       - key: ConnectionStrings__DefaultConnection
-        value: "Host=${DB_HOST};Port=${DB_PORT};Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD};SSL Mode=Require;Trust Server Certificate=true;"
-
-      - key: DB_HOST
-        fromDatabase:
-          name: owe-me-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: owe-me-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: owe-me-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: owe-me-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: owe-me-db
-          property: password
+        value: "Host=${_owe_me_db_host};Port=${_owe_me_db_port};Database=${_owe_me_db_database};Username=${_owe_me_db_user};Password=${_owe_me_db_password};SSL Mode=Require"
 
       - key: Migrations__ApplyMigrations
         value: "true"
