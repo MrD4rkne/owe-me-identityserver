@@ -1,5 +1,4 @@
-name: Deploy to Azure Container Apps
-
+name: Deploy
 on:
   workflow_dispatch:
   push:
@@ -13,7 +12,8 @@ jobs:
   build-and-test:
     name: Build, Test
     runs-on: ubuntu-latest
-
+    outputs:
+      semver: ${{ steps.nbgv.outputs.SemVer2 }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -24,6 +24,9 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
+
+      - uses: dotnet/nbgv@master
+        id: nbgv
 
       - name: Dotnet restore
         run: dotnet restore ${{ env.SOLUTION_PATH }}
@@ -62,12 +65,12 @@ jobs:
           context: .
           file: api/src/OweMe.Identity.Server/Dockerfile
           push: true
-          tags: ghcr.io/${{ env.REPO_LOWER }}/owe-me-identity:${{ needs.build.outputs.semver }}
+          tags: ghcr.io/${{ env.REPO_LOWER }}/owe-me-identity:${{ needs.build-and-test.outputs.semver }}
 
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    needs: push-to-ghcr
+    needs: [build-and-test, push-to-ghcr]
     permissions:
       contents: read
     steps:
@@ -79,7 +82,7 @@ jobs:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
           render deploys create "${{ secrets.RENDER_SERVICE_ID_IDENTITY }}" \
-            --image "ghcr.io/${{ env.REPO_LOWER }}/owe-me-identity@${{ steps.push.outputs.digest }}" \
+            --image "ghcr.io/${{ env.REPO_LOWER }}/owe-me-identity@${{ needs.build-and-test.outputs.semver }}" \
             --wait \
             --confirm \
             --output json
