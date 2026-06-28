@@ -46,6 +46,7 @@ builder.Services.AddOpenTelemetry()
 try
 {
     var app = builder
+        .AddConnectionStringFromEnv()
         .AddIdentityServer()
         .Build()
         .ConfigurePipeline();

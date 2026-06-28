@@ -3,6 +3,7 @@ using Duende.IdentityServer.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
 using OweMe.Identity.Server.Users.Domain;
@@ -13,6 +14,39 @@ namespace OweMe.Identity.Server.Setup;
 [ExcludeFromCodeCoverage]
 public static class HostingExtensions
 {
+    /// <summary>
+    /// B
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    public static WebApplicationBuilder AddConnectionStringFromEnv(this WebApplicationBuilder builder)
+    {
+        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
+        var username = Environment.GetEnvironmentVariable("DB_USER");
+        var password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+        var database = Environment.GetEnvironmentVariable("DB_NAME");
+
+        if (builder.Configuration.GetConnectionString(Constants.ConnectionStringName) is null)
+        {
+            var connectionString = new NpgsqlConnectionStringBuilder
+            {
+                Host = host,
+                Port = int.Parse(port),
+                Username = username,
+                Password = password,
+                Database = database,
+            }.ToString();
+            var data = new Dictionary<string, string?>
+            {
+                [$"ConnectionStrings:{Constants.ConnectionStringName}"] = connectionString
+            };
+            builder.Configuration.AddInMemoryCollection(data);
+        }
+
+        return builder;
+    }
+
     public static WebApplicationBuilder AddIdentityServer(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
