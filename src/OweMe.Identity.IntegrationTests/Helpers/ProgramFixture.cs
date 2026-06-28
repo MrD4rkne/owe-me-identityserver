@@ -1,6 +1,8 @@
 ﻿using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OweMe.Identity.IntegrationTests.Helpers;
 using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
@@ -48,5 +50,13 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
     {
         _configureTestServices.Add(configure);
         return this;
+    }
+
+    public ProgramFixture AddLogging(ITestOutputHelper testOutputHelper)
+    {
+        return ConfigureTestServices(configure => configure.ConfigureServices(services =>
+        {
+            services.AddLogging((builder) => builder.AddXUnit(testOutputHelper));
+        }));
     }
 }
