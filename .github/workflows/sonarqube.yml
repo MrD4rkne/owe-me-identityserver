@@ -8,7 +8,6 @@ on:
     types: [opened, synchronize, reopened]
 
 env:
-  CACHE_DIR: "$HOME/.sonar"
   JAVA_VERSION: "17"
 
 jobs:
@@ -28,38 +27,24 @@ jobs:
         with:
           fetch-depth: 0  # Full history for SonarCloud analysis and Nbgv versioning
 
-      - name: Define Cache Directory Variable
-        run: echo "CACHE_DIR=$HOME/.sonar" >> $GITHUB_ENV
-
+      # We safely cache only the Sonar internal packages/analysis cache data
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@v5
         with:
-          path: ${{ env.CACHE_DIR }}/cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache SonarQube Cloud scanner
-        id: cache-sonar-scanner
-        uses: actions/cache@v5
-        with:
-          path: ${{ env.CACHE_DIR }}/scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
-
-      - name: Install SonarQube Cloud scanner
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        run: |
-          # Create the cache directory if it doesn't exist
-          mkdir -p ${{ env.CACHE_DIR }}/scanner
-          dotnet tool update dotnet-sonarscanner --tool-path ${{ env.CACHE_DIR }}/scanner
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
 
+      - name: Install SonarQube Cloud scanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
       - name: Install dotcover
-        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7 # Version before removing dotnet-cover
+        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools --version 2025.1.7 
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
@@ -77,10 +62,7 @@ jobs:
           SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
           SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
-          scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
-
-          # Run SonarScanner Begin with quality gate waiting enabled
-          "$scannerPath" begin /k:"$SONAR_PROJECT_KEY" \
+          dotnet-sonarscanner begin /k:"$SONAR_PROJECT_KEY" \
             /o:"$SONAR_ORG" \
             /d:sonar.token="$SONAR_TOKEN" \
             /d:sonar.host.url="$SONAR_HOST_URL" \
@@ -88,8 +70,7 @@ jobs:
             /d:sonar.scanner.scanAll=false \
             /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300 \
-            /d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**" \
-            /s:""
+            /d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**"
 
       - name: Dotnet restore
         run: |
@@ -106,7 +87,7 @@ jobs:
             --reportType=HTML \
             --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
             --Output=dotCover.Output.html \
-          -- test --configuration Release --no-build
+            -- test --configuration Release --no-build
 
       - name: List test results
         run: |
@@ -115,11 +96,5 @@ jobs:
       - name: SonarQube End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
-          scannerPath="$CACHE_DIR/scanner/dotnet-sonarscanner"
-          
-          # Run SonarScanner End securely
-          "$scannerPath" end /d:sonar.token="$SONAR_TOKEN"
+          dotnet-sonarscanner end /d:sonar.token="$SONAR_TOKEN"
