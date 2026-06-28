@@ -6,7 +6,7 @@ services:
     plan: free
     image:
       url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.39-ge7b2356725
-    dockerCommand: /bin/sh -c 'export Database__ConnectionString="Host=$Database__Host;Port=${Database__Port:-5432};Database=$Database__Database;Username=$Database__Username;Password=$Database__Password;SslMode=Require;TrustServerCertificate=true" && exec dotnet OweMe.Identity.Server.dll'
+    dockerCommand: '["/bin/sh", "-c", "export Database__ConnectionString=\"Host=$Database__Host;Port=${Database__Port:-5432};Database=$Database__Database;Username=$Database__Username;Password=$Database__Password;SslMode=Require;TrustServerCertificate=true\" && exec dotnet OweMe.Identity.Server.dll"]'
     envVars:
       # Use the exact casing that the Npgsql driver looks for inside a configuration object
       - key: Database__Host
