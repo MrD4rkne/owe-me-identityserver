@@ -6,31 +6,34 @@ services:
     plan: free
     image:
       url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.28-g5f8c9dbad5
-    startCommand: >
-      export ConnectionStrings__DefaultConnection="Host=$DB_HOST;Port=$DB_PORT;Database=$DB_NAME;Username=$DB_USER;Password=$DB_PASSWORD;SSL Mode=Require;Trust Server Certificate=true;" && 
-      dotnet OweMe.Identity.Server.dll
-
     envVars:
-      - key: DB_HOST
+      # Use the exact casing that the Npgsql driver looks for inside a configuration object
+      - key: ConnectionStrings__DefaultConnection__Host
         fromDatabase:
           name: owe-me-db
           property: host
-      - key: DB_PORT
+      - key: ConnectionStrings__DefaultConnection__Port
         fromDatabase:
           name: owe-me-db
           property: port
-      - key: DB_NAME
+      - key: ConnectionStrings__DefaultConnection__Database
         fromDatabase:
           name: owe-me-db
           property: database
-      - key: DB_USER
+      - key: ConnectionStrings__DefaultConnection__Username
         fromDatabase:
           name: owe-me-db
           property: user
-      - key: DB_PASSWORD
+      - key: ConnectionStrings__DefaultConnection__Password
         fromDatabase:
           name: owe-me-db
           property: password
+          
+      # Force SSL configurations required by Render's managed databases
+      - key: ConnectionStrings__DefaultConnection__SSL_Mode
+        value: "Require"
+      - key: ConnectionStrings__DefaultConnection__Trust_Server_Certificate
+        value: "true"
 
       - key: Migrations__ApplyMigrations
         value: "true"
