@@ -58,10 +58,10 @@ jobs:
       - name: SonarQube Begin
         run: |
           dotnet-sonarscanner begin \
-            /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
-            /o:"${{ secrets.SONAR_ORG }}" \
+            /k:"${{ vars.SONAR_PROJECT_KEY }}" \
+            /o:"${{ vars.SONAR_ORG }}" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            /d:sonar.host.url="${{ vars.SONAR_HOST_URL }}" \
             /d:sonar.cs.dotcover.reportsPaths="dotCover.Output.html" \
             /d:sonar.scanner.scanAll=false \
             /d:sonar.qualitygate.wait=true \
