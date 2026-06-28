@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     image:
-      url: ghcr.io/mrd4rkne/oweme-identity/oweme-identity:1.0.28-g3ef66ae218
+      url: ghcr.io/mrd4rkne/owe-me-identity/oweme-identity:1.0.28-g3ef66ae218
     envVars:
       - key: Database__ConnectionString
         fromDatabase:

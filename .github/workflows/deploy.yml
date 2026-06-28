@@ -62,7 +62,7 @@ jobs:
           context: .
           file: api/src/OweMe.Identity.Server/Dockerfile
           push: true
-          tags: ghcr.io/${{ env.REPO_LOWER }}/oweme-identity:${{ needs.build.outputs.semver }}
+          tags: ghcr.io/${{ env.REPO_LOWER }}/owe-me-identity:${{ needs.build.outputs.semver }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -79,7 +79,7 @@ jobs:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
           render deploys create "${{ secrets.RENDER_SERVICE_ID_IDENTITY }}" \
-            --image "ghcr.io/${{ env.REPO_LOWER }}/oweme-identity@${{ steps.push.outputs.digest }}" \
+            --image "ghcr.io/${{ env.REPO_LOWER }}/owe-me-identity@${{ steps.push.outputs.digest }}" \
             --wait \
             --confirm \
             --output json
