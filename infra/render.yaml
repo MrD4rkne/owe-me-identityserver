@@ -7,27 +7,8 @@ services:
     image:
       url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.50-gf6ae7a72a0
     envVars:
-      # Use the exact casing that the Npgsql driver looks for inside a configuration object
-      - key: DB_HOST
-        fromDatabase:
-          name: owe-me-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: owe-me-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: owe-me-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: owe-me-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: owe-me-db
-          property: password
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
 
       - key: Migrations__ApplyMigrations
         value: "true"
