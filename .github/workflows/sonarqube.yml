@@ -56,17 +56,13 @@ jobs:
         run: echo "${{ steps.nbgv.outputs.SemVer2 }}"
 
       - name: SonarQube Begin
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORG: ${{ secrets.SONAR_ORG }}
         run: |
-          dotnet-sonarscanner begin /k:"$SONAR_PROJECT_KEY" \
-            /o:"$SONAR_ORG" \
-            /d:sonar.token="$SONAR_TOKEN" \
-            /d:sonar.host.url="$SONAR_HOST_URL" \
-            /d:sonar.cs.dotcover.reportsPaths=dotCover.Output.html \
+          dotnet-sonarscanner begin \
+            /k:"${{ secrets.SONAR_PROJECT_KEY }}" \
+            /o:"${{ secrets.SONAR_ORG }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" \
+            /d:sonar.cs.dotcover.reportsPaths="dotCover.Output.html" \
             /d:sonar.scanner.scanAll=false \
             /d:sonar.qualitygate.wait=true \
             /d:sonar.qualitygate.timeout=300 \
