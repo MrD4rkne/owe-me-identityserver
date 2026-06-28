@@ -36,7 +36,7 @@ jobs:
 
   push-to-ghcr:
     name: Push Docker Image to GHCR
-    needs: build
+    needs: build-and-test
     runs-on: ubuntu-latest
     permissions:
       packages: write
