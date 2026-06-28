@@ -10,7 +10,7 @@ services:
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: owe-me-db # we're using the same db as the API service, because of FREE plan limitations
-          property: connectionString
+          property: connectionStringKeyValue
       - key: Migrations__ApplyMigrations
         value: "true"
       - key: Migrations__SeedData
