@@ -7,7 +7,7 @@ services:
     image:
       url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.28-g5f8c9dbad5
     envVars:
-      - key: Database__ConnectionString
+      - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: owe-me-db # we're using the same db as the API service, because of FREE plan limitations
           property: connectionString
