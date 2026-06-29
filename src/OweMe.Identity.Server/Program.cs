@@ -26,7 +26,10 @@ builder.Logging.AddOpenTelemetry(logging =>
 });
 
 builder.Services.AddOpenTelemetry()
-    .WithLogging()
+    .WithLogging(b =>
+    {
+        b.AddOtlpExporter();
+    })
     .WithTracing(b =>
     {
         b.AddAspNetCoreInstrumentation();
@@ -36,11 +39,13 @@ builder.Services.AddOpenTelemetry()
             .AddSource(IdentityServerConstants.Tracing.Services)
             .AddSource(IdentityServerConstants.Tracing.Stores)
             .AddSource(IdentityServerConstants.Tracing.Validation);
+        b.AddOtlpExporter();
     })
     .WithMetrics(b =>
     {
         b.AddAspNetCoreInstrumentation();
         b.AddHttpClientInstrumentation();
+        b.AddOtlpExporter();
     }).WithLogging();
 
 try
