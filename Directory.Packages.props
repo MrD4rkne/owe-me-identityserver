@@ -10,10 +10,11 @@
     <PackageVersion Include="Duende.IdentityServer.EntityFramework" Version="7.3.1" />
     <PackageVersion Include="Duende.IdentityServer.EntityFramework.Storage" Version="7.3.1" />
     <PackageVersion Include="Duende.IdentityServer.Storage" Version="7.3.1" />
-    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
     <!-- Database and ORM -->
-    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.17" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.17" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.17" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.17" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <!-- Monitoring -->
     <PackageVersion Include="OpenTelemetry" Version="1.12.0" />

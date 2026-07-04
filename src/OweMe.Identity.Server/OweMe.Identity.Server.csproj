@@ -11,9 +11,10 @@
 		<PackageReference Include="Duende.IdentityServer.EntityFramework" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" />
 		<PackageReference Include="Duende.IdentityServer.Storage" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" >
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>

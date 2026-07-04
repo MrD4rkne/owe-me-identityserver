@@ -63,6 +63,11 @@ public static class HostingExtensions
                 options.EmitStaticAudienceClaim = true;
             });
 
+        builder.Services.AddDbContext<DataProtectionDbContext>(options =>
+        {
+            options.UseNpgsql(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
+        });
+
         builder.Services.AddIdentityServer()
             .AddConfigurationStore(options =>
             {
