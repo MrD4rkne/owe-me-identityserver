@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Duende.IdentityServer.Configuration;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -67,6 +68,8 @@ public static class HostingExtensions
         {
             options.UseNpgsql(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
         });
+        builder.Services.AddDataProtection()
+            .PersistKeysToDbContext<DataProtectionDbContext>();
 
         builder.Services.AddIdentityServer()
             .AddConfigurationStore(options =>
