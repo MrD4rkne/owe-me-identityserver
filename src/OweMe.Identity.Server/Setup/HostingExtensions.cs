@@ -71,7 +71,11 @@ public static class HostingExtensions
         builder.Services.AddDataProtection()
             .PersistKeysToDbContext<DataProtectionDbContext>();
 
-        builder.Services.AddIdentityServer()
+        builder.Services.AddIdentityServer(options =>
+            {
+                // Premium feature, not available for free.
+                options.KeyManagement.Enabled = false;
+            })
             .AddConfigurationStore(options =>
             {
                 options.ConfigureDbContext = dbContextBuilder =>
