@@ -16,8 +16,6 @@ services:
     depends_on:
       oweme.identity.database:
         condition: service_healthy
-      seq:
-        condition: service_started
 
   oweme.identity.database:
     image: "postgres:15"
