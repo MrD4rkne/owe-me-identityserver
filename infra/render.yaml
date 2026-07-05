@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     image:
-      url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.55-g3d4553aa1f
+      url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.56-g256841c4b3
     envVars:
       - key: ConnectionStrings__DefaultConnection
         sync: false
@@ -25,6 +25,8 @@ services:
       - key: OweMe__Identity__ApiScopes__1__DisplayName
         value: IdentityServerApi
       - key: OweMe__Identity__Clients__0__ClientId
+        value: oweme-client
+      - key: OweMe__Identity__Clients__0__ClientSecret
         value: oweme-client
       - key: OweMe__Identity__Clients__0__ClientName
         value: OweMe Client
