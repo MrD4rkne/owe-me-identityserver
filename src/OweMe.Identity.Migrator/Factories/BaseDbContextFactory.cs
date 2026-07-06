@@ -5,9 +5,20 @@ using OweMe.Identity.Persistence;
 
 namespace OweMe.Identity.Migrator.Factories;
 
-internal abstract class BaseDbContextFactory<TContext>(ILoggerFactory loggerFactory) : IDesignTimeDbContextFactory<TContext>
+internal abstract class BaseDbContextFactory<TContext> : IDesignTimeDbContextFactory<TContext>
     where TContext : DbContext
 {
+    private readonly ILoggerFactory? _loggerFactory;
+
+    protected BaseDbContextFactory(ILoggerFactory loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
+    }
+
+    protected BaseDbContextFactory()
+    {
+    }
+
     public TContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<TContext>();
@@ -23,7 +34,15 @@ internal abstract class BaseDbContextFactory<TContext>(ILoggerFactory loggerFact
                 .EnableDetailedErrors();
         }
 
-        optionsBuilder.UseLoggerFactory(loggerFactory);
+        if (_loggerFactory is not null)
+        {
+            optionsBuilder.UseLoggerFactory(_loggerFactory);
+        }
+        else
+        {
+            optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
+        }
+
         return CreateInstance(optionsBuilder.Options);
     }
 

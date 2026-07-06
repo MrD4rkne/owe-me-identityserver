@@ -8,4 +8,11 @@
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include=".ef\application.rsp" />
+    <Content Include=".ef\configuration.rsp" />
+    <Content Include=".ef\dataprotection.rsp" />
+    <Content Include=".ef\persistedgrant.rsp" />
+  </ItemGroup>
+
 </Project>

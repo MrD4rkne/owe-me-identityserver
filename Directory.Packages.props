@@ -12,6 +12,7 @@
     <PackageVersion Include="Duende.IdentityServer.Storage" Version="7.3.1" />
     <!-- Database and ORM -->
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="9.0.17" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.17" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.17" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.17" />
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.17" />
@@ -25,7 +26,6 @@
     <!-- Versioning -->
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
     <!-- Command line-->
-    <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="System.CommandLine" Version="2.0.9" />
   </ItemGroup>
   <!-- Tests-->

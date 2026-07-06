@@ -5,8 +5,14 @@ using Microsoft.Extensions.Logging;
 
 namespace OweMe.Identity.Migrator.Factories;
 
-internal sealed class PersistedGrantDbContextFactory(ILoggerFactory loggerFactory) : BaseDbContextFactory<PersistedGrantDbContext>(loggerFactory)
+internal sealed class PersistedGrantDbContextFactory : BaseDbContextFactory<PersistedGrantDbContext>
 {
+    internal PersistedGrantDbContextFactory(ILoggerFactory loggerFactory) : base(loggerFactory)
+    {
+    }
+
+    public PersistedGrantDbContextFactory() {}
+
     protected override PersistedGrantDbContext CreateInstance(DbContextOptions<PersistedGrantDbContext> options)
     {
         var context = new PersistedGrantDbContext(options);
