@@ -24,6 +24,9 @@
     <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
     <!-- Versioning -->
     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
+    <!-- Command line-->
+    <PackageVersion Include="Spectre.Console" Version="0.57.2" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.9" />
   </ItemGroup>
   <!-- Tests-->
   <ItemGroup>

@@ -12,33 +12,47 @@ WORKDIR /src
 COPY version.json ./
 COPY Directory.Build.props ./
 COPY Directory.Packages.props ./
-COPY OweMe.Identity.sln ./
 
 # Copy all .csproj files to restore dependencies
 COPY src/OweMe.Identity.Server/*.csproj ./src/OweMe.Identity.Server/
-COPY src/OweMe.Identity.UnitTests/*.csproj ./src/OweMe.Identity.UnitTests/
-COPY src/OweMe.Identity.IntegrationTests/*.csproj ./src/OweMe.Identity.IntegrationTests/
+COPY src/OweMe.Identity.Persistence/*.csproj ./src/OweMe.Identity.Persistence/
+COPY src/OweMe.Identity.Migrator/*.csproj ./src/OweMe.Identity.Migrator/
 
 # Restore dependencies (cached layer unless csproj changes)
-RUN dotnet restore OweMe.Identity.sln
+RUN dotnet restore ./src/OweMe.Identity.Server/OweMe.Identity.Server.csproj
+RUN dotnet restore ./src/OweMe.Identity.Migrator/OweMe.Identity.Migrator.csproj
 
 # Copy remaining source files
 COPY src/ ./src/
 
-# Build the project
+# Build the projects
 WORKDIR /src/src/OweMe.Identity.Server
 RUN dotnet build "OweMe.Identity.Server.csproj" -c "$BUILD_CONFIGURATION" --no-restore -o /app/build
 
+WORKDIR /src/src/OweMe.Identity.Migrator
+RUN dotnet build "OweMe.Identity.Migrator.csproj" -c "$BUILD_CONFIGURATION" --no-restore -o /app/build
+
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+
+WORKDIR /src/src/OweMe.Identity.Server
 RUN dotnet publish "OweMe.Identity.Server.csproj" \
     -c "$BUILD_CONFIGURATION" \
     --no-restore  \
     -o /app/publish \
     /p:UseAppHost=false
 
+WORKDIR /src/src/OweMe.Identity.Migrator
+RUN dotnet publish "OweMe.Identity.Migrator.csproj" \
+    -c "$BUILD_CONFIGURATION" \
+    --no-restore  \
+    -o /app/publish/migrator \
+    /p:UseAppHost=false
+
 FROM base AS final
 USER $APP_UID
 WORKDIR /app
+
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "OweMe.Identity.Server.dll"]

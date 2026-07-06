@@ -4,8 +4,8 @@ using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Moq;
+using OweMe.Identity.Persistence.Users.Domain;
 using OweMe.Identity.Server.Users.Application;
-using OweMe.Identity.Server.Users.Domain;
 
 namespace OweMe.Identity.UnitTests.Users.Application;
 
@@ -38,7 +38,7 @@ public class ProfileServiceTests
         Assert.Contains(context.IssuedClaims, claim => claim.Type == JwtClaimTypes.Name && claim.Value == user.UserName);
         Assert.Contains(context.IssuedClaims, claim => claim.Type == JwtClaimTypes.Email && claim.Value == user.Email);
     }
-    
+
     [Fact]
     public async Task GetProfileDataAsync_UsernameNull_ThrowsArgumentException()
     {
@@ -50,7 +50,7 @@ public class ProfileServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() => _profileService.GetProfileDataAsync(context));
     }
-    
+
     [Fact]
     public async Task GetProfileDataAsync_EmailNull_ThrowsArgumentException()
     {

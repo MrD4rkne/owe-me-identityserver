@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OweMe.Identity.Server.Users.Domain;
-using OweMe.Identity.Server.Users.Persistence;
+using OweMe.Identity.Persistence.Users;
+using OweMe.Identity.Persistence.Users.Domain;
 
 namespace OweMe.Identity.Server.Users.Application;
 

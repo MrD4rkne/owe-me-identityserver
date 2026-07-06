@@ -1,4 +1,4 @@
-﻿namespace OweMe.Identity.Server.Users.Domain;
+﻿namespace OweMe.Identity.Persistence.Users.Domain;
 
 public interface IUserService
 {

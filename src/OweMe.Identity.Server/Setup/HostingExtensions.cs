@@ -2,13 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using Duende.IdentityServer.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using OweMe.Identity.Persistence;
+using OweMe.Identity.Persistence.IdentityServer;
+using OweMe.Identity.Persistence.Users;
+using OweMe.Identity.Persistence.Users.Domain;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
-using OweMe.Identity.Server.Users.Domain;
-using OweMe.Identity.Server.Users.Persistence;
 
 namespace OweMe.Identity.Server.Setup;
 
@@ -59,14 +60,13 @@ public static class HostingExtensions
         builder.Services.AddOptions<IdentityServerOptions>()
             .Configure<IOptions<IdentityConfig>>((options, identityConfig) =>
             {
-                options.IssuerUri = identityConfig.Value.IssuerUri;
                 // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
                 options.EmitStaticAudienceClaim = true;
             });
 
         builder.Services.AddDbContext<DataProtectionDbContext>(options =>
         {
-            options.UseNpgsql(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
+            options.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
         });
         builder.Services.AddDataProtection()
             .PersistKeysToDbContext<DataProtectionDbContext>();
@@ -80,18 +80,14 @@ public static class HostingExtensions
             {
                 options.ConfigureDbContext = dbContextBuilder =>
                 {
-                    dbContextBuilder.UseNpgsql(
-                        builder.Configuration.GetConnectionString(Constants.ConnectionStringName),
-                        sqlOptions => sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+                    dbContextBuilder.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
                 };
             })
             .AddOperationalStore(options =>
             {
                 options.ConfigureDbContext = dbContextBuilder =>
                 {
-                    dbContextBuilder.UseNpgsql(
-                        builder.Configuration.GetConnectionString(Constants.ConnectionStringName),
-                        sqlOptions => sqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName));
+                    dbContextBuilder.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
                 };
 
                 // this enables automatic token cleanup. this is optional.
@@ -101,10 +97,7 @@ public static class HostingExtensions
             .AddAspNetIdentity<ApplicationUser>();
 
         builder.AddUsers();
-        builder.Services.AddSingleton<DatabaseSeeder>();
-        builder.Services.AddHostedService<MigrationHostedService>();
         builder.Services.AddOptions<IdentityConfig>().BindConfiguration(IdentityConfig.SectionName);
-        builder.Services.AddOptions<MigrationsOptions>().BindConfiguration(MigrationsOptions.SectionName);
 
         builder.Services.AddLocalApiAuthentication();
 

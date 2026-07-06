@@ -57,12 +57,6 @@ public sealed class GetUserEndpointTests : IClassFixture<ProgramFixture>
             ];
         };
 
-    private static readonly Action<MigrationsOptions> ConfigureMigrationsOptions = options =>
-    {
-        options.ApplyMigrations = true;
-        options.SeedData = true;
-    };
-
     private readonly WebApplicationFactory<Program> _factory;
     private readonly Guid _nonExistentUserId = Guid.NewGuid();
 
@@ -70,8 +64,7 @@ public sealed class GetUserEndpointTests : IClassFixture<ProgramFixture>
     {
         factory.ConfigureTestServices(builder =>
         {
-            builder.WithConfigure(ConfigureMigrationsOptions)
-                .WithConfigure(ConfigureIdentityConfig);
+            builder.WithConfigure(ConfigureIdentityConfig);
         });
 
         _factory = factory.AddLogging(testOutputHelper);

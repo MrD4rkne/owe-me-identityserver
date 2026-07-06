@@ -15,8 +15,6 @@ public sealed class IdentityConfig
         new(name:"user", userClaims: [JwtClaimTypes.Email])
     ];
 
-    public string? IssuerUri { get; set; }
-
     public ApiScope[] ApiScopes { get; set; } = [];
 
     public Client[] Clients { get; set; } = [];

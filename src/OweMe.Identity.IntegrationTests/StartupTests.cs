@@ -20,12 +20,6 @@ public sealed class StartupTests : IClassFixture<ProgramFixture>
         // Configure the server with migrations options
         _factory.ConfigureTestServices(builder =>
         {
-            builder.WithConfigure<MigrationsOptions>(options =>
-            {
-                options.ApplyMigrations = true;
-                options.SeedData = true;
-            });
-
             // Configure identity options for all tests
             builder.WithConfigure<IdentityConfig>(config =>
             {

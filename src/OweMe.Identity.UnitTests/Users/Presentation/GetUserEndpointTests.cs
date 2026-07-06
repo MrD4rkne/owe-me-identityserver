@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Moq;
-using OweMe.Identity.Server.Users.Domain;
+using OweMe.Identity.Persistence.Users.Domain;
 using OweMe.Identity.Server.Users.Presentation;
 using Shouldly;
 
