@@ -6,7 +6,11 @@ services:
     plan: free
     image:
       url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.56-g256841c4b3
+    preDeployCommand: dotnet /app/migrator/OweMe.Identity.Migrator.dll migrate -v
     envVars:
+      - key: MIGRATIONS_CONNECTION_STRING
+        sync: false
+
       - key: ConnectionStrings__DefaultConnection
         sync: false
 
