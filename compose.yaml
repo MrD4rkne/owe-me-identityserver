@@ -1,10 +1,5 @@
 ﻿name: oweme-system
 
-x-database-common: &db-common
-    POSTGRES_DB: OweMe.Identity
-    POSTGRES_USER: sa
-    POSTGRES_PASSWORD: Password123
-
 services:
     oweme.identity.database:
         image: "postgres:15"
@@ -12,9 +7,11 @@ services:
         ports:
             - "5432:5432"
         environment:
-            <<: *db-common
+            POSTGRES_DB: ${POSTGRES_DB}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U sa -d OweMe.Identity"]
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -24,8 +21,7 @@ services:
         container_name: oweme.identity.migrator
         entrypoint: ["dotnet", "/app/migrator/OweMe.Identity.Migrator.dll", "migrate"]
         environment:
-            <<: *db-common
-            MIGRATIONS_CONNECTION_STRING: Host=oweme.identity.database;Database=OweMe.Identity;Username=sa;Password=Password123;
+            MIGRATIONS_CONNECTION_STRING: Host=oweme.identity.database;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
         depends_on:
             oweme.identity.database:
                 condition: service_healthy
@@ -37,8 +33,7 @@ services:
             - "5010:8080"
             - "5011:8081"
         environment:
-            <<: *db-common
-            ConnectionStrings__DefaultConnection: Host=oweme.identity.database;Database=OweMe.Identity;Username=sa;Password=Password123;
+            ConnectionStrings__DefaultConnection: Host=oweme.identity.database;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
         depends_on:
             oweme.identity.migrator:
                 condition: service_completed_successfully
