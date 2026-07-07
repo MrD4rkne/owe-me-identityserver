@@ -2,16 +2,14 @@ using System.Diagnostics.CodeAnalysis;
 using Duende.IdentityServer.Configuration;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Npgsql;
-using OweMe.Identity.Persistence;
 using OweMe.Identity.Persistence.IdentityServer;
 using OweMe.Identity.Persistence.Users;
 using OweMe.Identity.Persistence.Users.Domain;
 using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users;
 
-namespace OweMe.Identity.Server.Setup;
+namespace OweMe.Identity.Server;
 
 [ExcludeFromCodeCoverage]
 public static class HostingExtensions
@@ -58,16 +56,12 @@ public static class HostingExtensions
             .AddDefaultTokenProviders();
 
         builder.Services.AddOptions<IdentityServerOptions>()
-            .Configure<IOptions<IdentityConfig>>((options, identityConfig) =>
+            .Configure((options) =>
             {
                 // https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/api_scopes#authorization-based-on-scopes
                 options.EmitStaticAudienceClaim = true;
             });
 
-        builder.Services.AddDbContext<DataProtectionDbContext>(options =>
-        {
-            options.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
-        });
         builder.Services.AddDataProtection()
             .PersistKeysToDbContext<DataProtectionDbContext>();
 
@@ -76,20 +70,9 @@ public static class HostingExtensions
                 // Premium feature, not available for free.
                 options.KeyManagement.Enabled = false;
             })
-            .AddConfigurationStore(options =>
-            {
-                options.ConfigureDbContext = dbContextBuilder =>
-                {
-                    dbContextBuilder.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
-                };
-            })
+            .AddConfigurationStore()
             .AddOperationalStore(options =>
             {
-                options.ConfigureDbContext = dbContextBuilder =>
-                {
-                    dbContextBuilder.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
-                };
-
                 // this enables automatic token cleanup. this is optional.
                 options.EnableTokenCleanup = true;
                 options.TokenCleanupInterval = 3600; // interval in seconds (default is 3600)
@@ -97,7 +80,6 @@ public static class HostingExtensions
             .AddAspNetIdentity<ApplicationUser>();
 
         builder.AddUsers();
-        builder.Services.AddOptions<IdentityConfig>().BindConfiguration(IdentityConfig.SectionName);
 
         builder.Services.AddLocalApiAuthentication();
 

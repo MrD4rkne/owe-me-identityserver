@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OweMe.Identity.Migrator;
 
@@ -16,7 +17,7 @@ Argument<string?> connectionStringArgument = new("connectionString")
 };
 Command migrateCommand = new("migrate", "Applies all pending migrations to the database.")
 {
-    Arguments = { connectionStringArgument }
+    Arguments = { connectionStringArgument },
 };
 rootCommand.Add(migrateCommand);
 
@@ -32,28 +33,8 @@ migrateCommand.SetAction(async (parseResult, cancellationToken) =>
     var connectionString = parseResult.GetValue(connectionStringArgument) ?? Environment.GetEnvironmentVariable(connectionStringVariableName);
     var isVerbose = parseResult.GetValue(verboseOption);
 
-    using var loggerFactory = LoggerFactory.Create(builder =>
-    {
-        builder
-            .AddSimpleConsole(options =>
-            {
-                options.IncludeScopes = false;
-                options.TimestampFormat = "[HH:mm:ss] ";
-                options.SingleLine = true;
-            });
-        if (isVerbose)
-        {
-            builder.SetMinimumLevel(LogLevel.Debug);
-            builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Information);
-        }
-        else
-        {
-            builder.SetMinimumLevel(LogLevel.Information);
-            builder.AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
-        }
-    });
-
-    var logger = loggerFactory.CreateLogger("MigrationPipeline");
+    var serviceProvider = DependencyInjection.CreateProvider(connectionString, isVerbose);
+    var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
     if (string.IsNullOrWhiteSpace(connectionString))
     {
@@ -64,13 +45,15 @@ migrateCommand.SetAction(async (parseResult, cancellationToken) =>
 
     try
     {
-        await new MigrateCommand(loggerFactory).ExecuteAsync(connectionString, cancellationToken);
+        using var scope = serviceProvider.CreateScope();
+        var command = scope.ServiceProvider.GetRequiredService<MigrateCommand>();
+        await command.ExecuteAsync(cancellationToken);
         Environment.ExitCode = 0;
         return;
     }
     catch (Exception ex)
     {
-        logger.LogCritical(ex, "An error occurred during the migration process.");
+        logger.LogError(ex, "An error occurred during the migration process.");
         Environment.ExitCode = 1;
         return;
     }

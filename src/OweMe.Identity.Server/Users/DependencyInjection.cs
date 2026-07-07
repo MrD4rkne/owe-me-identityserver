@@ -12,12 +12,6 @@ internal static class DependencyInjection
 {
     public static void AddUsers(this WebApplicationBuilder builder)
     {
-        // Persistence
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.ConfigureDbContextOptions(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
-        });
-
         // Application
         builder.Services.AddTransient<IProfileService, ProfileService>();
         builder.Services.AddTransient<IUserService, UserService>();

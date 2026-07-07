@@ -1,8 +1,10 @@
 ﻿using Duende.IdentityServer;
-using OweMe.Identity.Server.Setup;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Logs;
+using OweMe.Identity.Persistence;
+using OweMe.Identity.Server;
+using OweMe.Identity.Server.Data;
 
 using var loggerFactory = LoggerFactory.Create(logging => logging.AddConsole());
 var bootstrapLogger = loggerFactory.CreateLogger("Startup");
@@ -50,12 +52,14 @@ builder.Services.AddOpenTelemetry()
 
 try
 {
-    var app = builder
-        .AddConnectionStringFromEnv()
-        .AddIdentityServer()
-        .Build()
-        .ConfigurePipeline();
+    builder .AddConnectionStringFromEnv();
 
+    builder.Services.AddOweMeStorage(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
+
+    builder.AddIdentityServer();
+
+    var app = builder.Build()
+        .ConfigurePipeline();
     await app.RunAsync();
 }
 catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
