@@ -6,7 +6,7 @@ namespace OweMe.Identity.Migrator.Factories;
 
 internal sealed class ApplicationDbContextFactory : BaseDbContextFactory<ApplicationDbContext>
 {
-    internal ApplicationDbContextFactory(ILoggerFactory loggerFactory) : base(loggerFactory)
+    public ApplicationDbContextFactory(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
     }
 

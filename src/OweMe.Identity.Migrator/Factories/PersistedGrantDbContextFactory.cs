@@ -7,7 +7,7 @@ namespace OweMe.Identity.Migrator.Factories;
 
 internal sealed class PersistedGrantDbContextFactory : BaseDbContextFactory<PersistedGrantDbContext>
 {
-    internal PersistedGrantDbContextFactory(ILoggerFactory loggerFactory) : base(loggerFactory)
+    public PersistedGrantDbContextFactory(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
     }
 
