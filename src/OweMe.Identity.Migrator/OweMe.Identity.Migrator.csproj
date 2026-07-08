@@ -15,5 +15,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
   </ItemGroup>
+    
+  <ItemGroup>
+    <Folder Include="Factories\" />
+  </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.EntityFrameworkCore;
 
-namespace OweMe.Identity.Migrator.Factories;
+namespace OweMe.Identity.Migrator.Migrations.Factories;
 
 internal sealed class ConfigurationDbContextFactory: BaseDbContextFactory<ConfigurationDbContext>
 {

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using OweMe.Identity.Persistence;
 
-namespace OweMe.Identity.Migrator.Factories;
+namespace OweMe.Identity.Migrator.Migrations.Factories;
 
 internal abstract class BaseDbContextFactory<TContext> : IDesignTimeDbContextFactory<TContext>
     where TContext : DbContext

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using OweMe.Identity.Persistence.IdentityServer;
 using OweMe.Identity.Persistence.Users;
 
-namespace OweMe.Identity.Migrator;
+namespace OweMe.Identity.Migrator.Migrations;
 
 internal sealed class MigrateCommand(IServiceProvider serviceProvider, ILogger<MigrateCommand> logger)
 {

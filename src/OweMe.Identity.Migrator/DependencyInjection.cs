@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OweMe.Identity.Migrator.Migrations;
 using OweMe.Identity.Persistence;
 
 namespace OweMe.Identity.Migrator;

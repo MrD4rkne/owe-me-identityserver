@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OweMe.Identity.Persistence.IdentityServer;
 
-namespace OweMe.Identity.Migrator.Factories;
+namespace OweMe.Identity.Migrator.Migrations.Factories;
 
 internal sealed class DataProtectionDbContextFactory : BaseDbContextFactory<DataProtectionDbContext>
 {
