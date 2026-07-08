@@ -21,7 +21,7 @@ services:
         container_name: oweme.identity.migrator
         entrypoint: ["dotnet", "/app/migrator/OweMe.Identity.Migrator.dll", "migrate"]
         environment:
-            MIGRATIONS_CONNECTION_STRING: Host=oweme.identity.database;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+            ConnectionStrings__DefaultConnection: Host=oweme.identity.database;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
         depends_on:
             oweme.identity.database:
                 condition: service_healthy

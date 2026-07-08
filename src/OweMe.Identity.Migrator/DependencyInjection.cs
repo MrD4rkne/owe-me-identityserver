@@ -1,15 +1,20 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OweMe.Identity.Migrator.Migrations;
+using OweMe.Identity.Migrator.Seeding;
 using OweMe.Identity.Persistence;
 
 namespace OweMe.Identity.Migrator;
 
 internal static class DependencyInjection
 {
-    internal static IServiceProvider CreateProvider(string? connectionString, bool isVerbose)
+    internal static IServiceProvider CreateProvider(IConfiguration configuration, bool isVerbose)
     {
         var services = new ServiceCollection();
+        services.AddSingleton(configuration);
+        services.Configure<SeedData>(configuration.GetSection(SeedData.SectionName));
+        services.Configure<LoggingOptions>(configuration.GetSection(LoggingOptions.SectionName));
 
         services.AddLogging(builder =>
         {
@@ -33,9 +38,15 @@ internal static class DependencyInjection
             }
         });
 
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new MissingConnectionStringException();
+        }
         services.AddOweMeStorage(connectionString);
 
         services.AddTransient<MigrateCommand>();
+        services.AddTransient<SeedCommand>();
 
         return services.BuildServiceProvider();
     }
