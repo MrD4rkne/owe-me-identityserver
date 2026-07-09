@@ -36,7 +36,7 @@ internal static class CommandDelegateHelper
         });
     }
 
-    internal static void BindCommand<TCommand>(this RootCommand root, Command command)
+    private static void BindCommand<TCommand>(this RootCommand root, Command command)
         where TCommand : ICommand
     {
         command.SetAction(Run<TCommand>);
