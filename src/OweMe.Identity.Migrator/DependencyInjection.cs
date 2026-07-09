@@ -14,7 +14,6 @@ internal static class DependencyInjection
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
         services.Configure<SeedData>(configuration.GetSection(SeedData.SectionName));
-        services.Configure<LoggingOptions>(configuration.GetSection(LoggingOptions.SectionName));
 
         services.AddLogging(builder =>
         {
