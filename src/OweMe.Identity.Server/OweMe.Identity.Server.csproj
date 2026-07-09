@@ -3,9 +3,8 @@
 	<PropertyGroup>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
-    
+
     <ItemGroup>
-        <ProjectReference Include="..\OweMe.Identity.Migrator\OweMe.Identity.Migrator.csproj" />
         <ProjectReference Include="..\OweMe.Identity.Persistence\OweMe.Identity.Persistence.csproj" />
     </ItemGroup>
 
