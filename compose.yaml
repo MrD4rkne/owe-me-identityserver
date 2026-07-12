@@ -26,6 +26,18 @@ services:
             oweme.identity.database:
                 condition: service_healthy
 
+    oweme.identity.seeder:
+        image: oweme.identity
+        container_name: oweme.identity.seeder
+        entrypoint: [ "dotnet", "/app/migrator/OweMe.Identity.Migrator.dll", "seed" ]
+        environment:
+            ConnectionStrings__DefaultConnection: Host=oweme.identity.database;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+        depends_on:
+            oweme.identity.database:
+                condition: service_healthy
+            oweme.identity.migrator:
+                condition: service_completed_successfully
+
     oweme.identity:
         image: oweme.identity
         container_name: oweme.identity
