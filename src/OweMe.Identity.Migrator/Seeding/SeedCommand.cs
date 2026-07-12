@@ -1,4 +1,3 @@
-using Duende.IdentityServer;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace OweMe.Identity.Migrator.Seeding;
 
-internal sealed class SeedCommand(IServiceProvider serviceProvider, ILogger<SeedCommand> logger, IOptions<SeedData> seedData) : ICommand
+public sealed class SeedCommand(IServiceProvider serviceProvider, ILogger<SeedCommand> logger, IOptions<SeedData> seedData) : ICommand
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -133,7 +132,7 @@ internal sealed class SeedCommand(IServiceProvider serviceProvider, ILogger<Seed
         existing.ClientName = client.ClientName;
         existing.Description = client.Description;
         existing.AllowedGrantTypes = client.AllowedGrantTypes.Select(gt => new ClientGrantType { GrantType = gt }).ToList();
-
+        existing.AllowedScopes = client.AllowedScopes.Select(s => new ClientScope { Scope = s }).ToList();
         existing.ClientSecrets ??= [];
 
         var secretsToUpdate = existing.ClientSecrets
