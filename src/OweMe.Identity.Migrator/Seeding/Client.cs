@@ -3,7 +3,7 @@ using Duende.IdentityServer;
 
 namespace OweMe.Identity.Migrator.Seeding;
 
-internal sealed record Client
+public sealed record Client
 {
     public required string ClientId { get; init; }
 
@@ -17,7 +17,7 @@ internal sealed record Client
 
     public string[] AllowedScopes { get; init; } = [];
 
-    internal sealed record Secret
+    public sealed record Secret
     {
         public required string Value { get; init; }
 
@@ -31,14 +31,5 @@ internal sealed record Client
         public DateTimeOffset? Expiration { get; init; }
 
         public string? Description { get; init; }
-    }
-
-    internal sealed record GrantType
-    {
-        [AllowedValues([
-            "client-credentials",
-            "password"
-        ])]
-        public required string Value { get; init; }
     }
 }

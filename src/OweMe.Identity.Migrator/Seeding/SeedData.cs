@@ -1,6 +1,6 @@
 namespace OweMe.Identity.Migrator.Seeding;
 
-internal sealed record SeedData
+public sealed record SeedData
 {
     public const string SectionName = "Seeding";
 
