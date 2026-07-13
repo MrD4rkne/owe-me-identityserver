@@ -65,7 +65,7 @@ public static class HostingExtensions
         builder.Services.AddDataProtection()
             .PersistKeysToDbContext<DataProtectionDbContext>();
 
-        builder.Services.AddIdentityServer(options =>
+        var identityServerBuilder = builder.Services.AddIdentityServer(options =>
             {
                 // Premium feature, not available for free.
                 options.KeyManagement.Enabled = false;
@@ -78,6 +78,10 @@ public static class HostingExtensions
                 options.TokenCleanupInterval = 3600; // interval in seconds (default is 3600)
             })
             .AddAspNetIdentity<ApplicationUser>();
+        if (builder.Environment.IsDevelopment())
+        {
+            identityServerBuilder.AddDeveloperSigningCredential();
+        }
 
         builder.AddUsers();
 

@@ -52,7 +52,7 @@ builder.Services.AddOpenTelemetry()
 
 try
 {
-    builder .AddConnectionStringFromEnv();
+    builder.AddConnectionStringFromEnv();
 
     builder.Services.AddOweMeStorage(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
 

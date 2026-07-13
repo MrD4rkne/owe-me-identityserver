@@ -7,7 +7,7 @@ using OweMe.Identity.Persistence.Users;
 
 namespace OweMe.Identity.Migrator.Migrations;
 
-internal sealed class MigrateCommand(IServiceProvider serviceProvider, ILogger<MigrateCommand> logger) : ICommand
+public sealed class MigrateCommand(IServiceProvider serviceProvider, ILogger<MigrateCommand> logger) : ICommand
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
