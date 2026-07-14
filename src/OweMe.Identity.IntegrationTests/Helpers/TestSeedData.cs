@@ -14,9 +14,21 @@ internal static class TestSeedData
     };
 
     internal static readonly Scope SomeScope = new(){
-        Name = "some-other-scope",
+        Name = "SomeOtherScope",
         DisplayName = "Some Other Scope",
         Description = "Access to some other scope"
+    };
+
+    internal static readonly Scope OpenIdScope = new(){
+        Name = IdentityServerConstants.StandardScopes.OpenId,
+        DisplayName = "OpenID Connect",
+        Description = "OpenID Connect scope"
+    };
+
+    internal static readonly Scope ProfileScope = new(){
+        Name = IdentityServerConstants.StandardScopes.Profile,
+        DisplayName = "Profile",
+        Description = "Profile scope"
     };
 
     internal const string LocalApiClientSecret = "local_api_secret";
@@ -57,12 +69,12 @@ internal static class TestSeedData
             },
         ],
         AllowedGrantTypes = [GrantType.ResourceOwnerPassword],
-        AllowedScopes = [SomeScope.Name, "openid", "profile"],
+        AllowedScopes = [SomeScope.Name, OpenIdScope.Name, ProfileScope.Name],
     };
 
     internal static readonly SeedData Data = new()
     {
-        Scopes = [LocalApiScope, SomeScope],
+        Scopes = [LocalApiScope, SomeScope, OpenIdScope, ProfileScope],
         Clients = [LocalApiClient, SomeApiClient]
     };
 
