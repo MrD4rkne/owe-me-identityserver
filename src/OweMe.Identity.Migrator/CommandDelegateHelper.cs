@@ -42,7 +42,7 @@ internal static class CommandDelegateHelper
             .AddEnvironmentVariables()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true)
             .Build();
 
         bool isVerbose = parseResult.GetValue(VerboseOption);
