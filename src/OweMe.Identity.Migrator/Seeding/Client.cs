@@ -1,14 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using Duende.IdentityServer;
+using Microsoft.Extensions.Options;
 
 namespace OweMe.Identity.Migrator.Seeding;
 
 public sealed record Client
 {
+    [Required]
     public required string ClientId { get; init; }
 
+    [ValidateEnumeratedItems]
     public required Secret[] ClientSecrets { get; init; }
 
+    [Required]
     public required string ClientName { get; init; }
 
     public string? Description { get; init; }

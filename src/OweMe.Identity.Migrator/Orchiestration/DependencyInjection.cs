@@ -1,19 +1,17 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OweMe.Identity.Migrator.Migrations;
-using OweMe.Identity.Migrator.Seeding;
+using Microsoft.Extensions.Options;
 using OweMe.Identity.Persistence;
 
-namespace OweMe.Identity.Migrator;
+namespace OweMe.Identity.Migrator.Orchiestration;
 
 internal static class DependencyInjection
 {
-    internal static IServiceProvider CreateProvider(IConfiguration configuration, bool isVerbose)
+    internal static IServiceCollection CreateProvider(IConfiguration configuration, bool isVerbose)
     {
         var services = new ServiceCollection();
         services.AddSingleton(configuration);
-        services.Configure<SeedData>(configuration.GetSection(SeedData.SectionName));
 
         services.AddLogging(builder =>
         {
@@ -44,9 +42,16 @@ internal static class DependencyInjection
         }
         services.AddOweMeStorage(connectionString);
 
-        services.AddTransient<MigrateCommand>();
-        services.AddTransient<SeedCommand>();
+        return services;
+    }
 
-        return services.BuildServiceProvider();
+    /// <summary>
+    /// Run validation of all Options. Necessary as we're not using a standard builder.
+    /// </summary>
+    internal static IServiceProvider ValidateOptions(this IServiceProvider provider)
+    {
+        var validator = provider.GetService<IStartupValidator>();
+        validator?.Validate();
+        return provider;
     }
 }

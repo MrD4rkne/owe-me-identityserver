@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using System.Diagnostics;
 using OweMe.Identity.Migrator;
+using OweMe.Identity.Migrator.Orchiestration;
 
 RootCommand rootCommand = new()
 {

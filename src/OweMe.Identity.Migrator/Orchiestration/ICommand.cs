@@ -1,4 +1,4 @@
-namespace OweMe.Identity.Migrator;
+namespace OweMe.Identity.Migrator.Orchiestration;
 
 internal interface ICommand
 {

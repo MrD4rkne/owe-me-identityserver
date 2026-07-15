@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OweMe.Identity.Migrator.Orchiestration;
 
 namespace OweMe.Identity.Migrator.Seeding;
 
@@ -21,6 +22,12 @@ public sealed class SeedCommand(IServiceProvider serviceProvider, ILogger<SeedCo
 
     private async Task SeedScopes(CancellationToken cancellationToken)
     {
+        if(seedData.Value.Scopes.Count == 0)
+        {
+            logger.LogInformation("No scopes to seed, skipping.");
+            return;
+        }
+
         logger.LogDebug("Seeding scopes");
         await using var scope = serviceProvider.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
@@ -76,6 +83,12 @@ public sealed class SeedCommand(IServiceProvider serviceProvider, ILogger<SeedCo
 
     private async Task SeedClients(CancellationToken cancellationToken)
     {
+        if (seedData.Value.Clients.Count == 0)
+        {
+            logger.LogInformation("No clients to seed, skipping.");
+            return;
+        }
+
         logger.LogDebug("Seeding clients");
         await using var scope = serviceProvider.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();

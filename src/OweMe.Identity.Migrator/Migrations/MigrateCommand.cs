@@ -2,6 +2,7 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OweMe.Identity.Migrator.Orchiestration;
 using OweMe.Identity.Persistence.IdentityServer;
 using OweMe.Identity.Persistence.Users;
 
