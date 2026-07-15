@@ -35,13 +35,15 @@ RUN dotnet build "OweMe.Identity.Migrator.csproj" -c "$BUILD_CONFIGURATION" --no
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 
+# Publish Web App to its own temporary folder
 WORKDIR /src/src/OweMe.Identity.Server
 RUN dotnet publish "OweMe.Identity.Server.csproj" \
     -c "$BUILD_CONFIGURATION" \
     --no-restore  \
-    -o /app/publish \
+    -o /app/publish/server \
     /p:UseAppHost=false
 
+# Publish Migrator to its own temporary folder
 WORKDIR /src/src/OweMe.Identity.Migrator
 RUN dotnet publish "OweMe.Identity.Migrator.csproj" \
     -c "$BUILD_CONFIGURATION" \
@@ -53,6 +55,8 @@ FROM base AS final
 USER $APP_UID
 WORKDIR /app
 
-COPY --from=publish /app/publish .
+COPY --from=publish /app/publish/server ./server
+COPY --from=publish /app/publish/migrator ./migrator
 
+WORKDIR /app/server
 ENTRYPOINT ["dotnet", "OweMe.Identity.Server.dll"]
