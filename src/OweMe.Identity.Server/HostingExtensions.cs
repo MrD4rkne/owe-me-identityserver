@@ -80,7 +80,7 @@ public static class HostingExtensions
             .AddAspNetIdentity<ApplicationUser>();
         if (builder.Environment.IsDevelopment())
         {
-            identityServerBuilder.AddDeveloperSigningCredential(filename: "/tmp/tempkey.jwk");
+            identityServerBuilder.AddDeveloperSigningCredential();
         }
 
         builder.AddUsers();

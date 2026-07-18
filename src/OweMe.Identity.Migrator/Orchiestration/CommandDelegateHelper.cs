@@ -66,13 +66,11 @@ internal static class CommandDelegateHelper
         {
             await command.ExecuteAsync(cancellationToken);
             Environment.ExitCode = 0;
-            return;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred during the migration process.");
             Environment.ExitCode = 1;
-            return;
         }
     }
 }
