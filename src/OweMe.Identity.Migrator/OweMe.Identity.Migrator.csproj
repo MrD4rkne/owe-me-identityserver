@@ -7,7 +7,7 @@
   <ItemGroup>
       <ProjectReference Include="..\OweMe.Identity.Persistence\OweMe.Identity.Persistence.csproj" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="System.CommandLine" />
@@ -15,7 +15,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
   </ItemGroup>
-    
+
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -24,5 +24,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>OweMe.Identity.MIgrator.IntegrationTests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
 
 </Project>

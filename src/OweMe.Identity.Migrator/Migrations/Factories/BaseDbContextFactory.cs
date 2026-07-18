@@ -7,14 +7,15 @@ namespace OweMe.Identity.Migrator.Migrations.Factories;
 internal abstract class BaseDbContextFactory<TContext> : IDesignTimeDbContextFactory<TContext>
     where TContext : DbContext
 {
-    protected BaseDbContextFactory()
-    {
-    }
-
     public TContext CreateDbContext(string[] args)
     {
+        return CreateDbContext((string?)null);
+    }
+
+    internal TContext CreateDbContext(string? connectionString)
+    {
         var optionsBuilder = new DbContextOptionsBuilder<TContext>();
-        optionsBuilder.ConfigureDbContextOptions(null);
+        optionsBuilder.ConfigureDbContextOptions(connectionString);
         return CreateInstance(optionsBuilder.Options);
     }
 

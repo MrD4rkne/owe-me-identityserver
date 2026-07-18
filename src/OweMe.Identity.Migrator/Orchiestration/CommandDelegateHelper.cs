@@ -15,18 +15,19 @@ internal static class CommandDelegateHelper
         Recursive = true
     };
 
-    internal static void RegisterCommands(this RootCommand rootCommand)
+    internal static void RegisterCommands(this RootCommand rootCommand, Action<IServiceCollection, IConfiguration>? configure = null)
     {
         rootCommand.BindCommand<MigrateCommand>(new("migrate", "Applies all pending migrations to the database.")
         {
             Options = { VerboseOption }
-        });
+        }, configure);
 
         rootCommand.BindCommand<SeedCommand>(new("seed", "Seeds the database.")
         {
             Options = { VerboseOption }
         }, (services, configuration) =>
         {
+            configure?.Invoke(services, configuration);
             services.AddSeedCommand(configuration);
         });
     }
