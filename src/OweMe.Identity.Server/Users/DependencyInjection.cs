@@ -1,8 +1,5 @@
 ﻿using Duende.IdentityServer.Services;
-using OweMe.Identity.Persistence;
-using OweMe.Identity.Persistence.Users;
 using OweMe.Identity.Persistence.Users.Domain;
-using OweMe.Identity.Server.Data;
 using OweMe.Identity.Server.Users.Application;
 using OweMe.Identity.Server.Users.Presentation;
 
