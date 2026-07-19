@@ -11,14 +11,20 @@ namespace OweMe.Identity.IntegrationTests.Helpers;
 
 public class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly List<Action<IWebHostBuilder>> _configureTestServices = new();
-
     private readonly PostgreSqlContainer _databaseContainer = new PostgreSqlBuilder()
         .WithDatabase("testdb")
         .WithUsername("postgres")
         .WithPassword("postgres")
         .WithPortBinding(5432, true)
         .Build();
+
+    protected ITestOutputHelper? TestOutputHelper { get; private set; }
+
+    public ProgramFixture WithTestOutputHelper(ITestOutputHelper testOutputHelper)
+    {
+        TestOutputHelper = testOutputHelper;
+        return this;
+    }
 
     protected string ConnectionString => _databaseContainer.GetConnectionString();
 
@@ -39,25 +45,17 @@ public class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.UseSetting($"ConnectionStrings:{Constants.ConnectionStringName}", connectionString);
 
-        foreach (var configureTestService in _configureTestServices)
-        {
-            configureTestService(builder);
-        }
-
         builder.WithConfigure<OperationalStoreOptions>(options => { options.EnableTokenCleanup = false; });
-    }
 
-    private ProgramFixture ConfigureTestServices(Action<IWebHostBuilder> configure)
-    {
-        _configureTestServices.Add(configure);
-        return this;
-    }
-
-    public ProgramFixture AddLogging(ITestOutputHelper testOutputHelper)
-    {
-        return ConfigureTestServices(configure => configure.ConfigureServices(services =>
+        builder.ConfigureServices(services =>
         {
-            services.AddLogging((builder) => builder.AddXUnit(testOutputHelper));
-        }));
+            services.AddLogging(logging =>
+            {
+                if (TestOutputHelper != null)
+                {
+                    logging.AddXUnit(TestOutputHelper);
+                }
+            });
+        });
     }
 }

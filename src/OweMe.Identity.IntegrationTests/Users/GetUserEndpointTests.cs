@@ -12,7 +12,7 @@ namespace OweMe.Identity.IntegrationTests.Users;
 public sealed class GetUserEndpointTests(ITestOutputHelper testOutputHelper, ProgramWithSeedData factory)
     : IClassFixture<ProgramWithSeedData>
 {
-    private readonly WebApplicationFactory<Program> _factory = factory.AddLogging(testOutputHelper);
+    private readonly WebApplicationFactory<Program> _factory = factory.WithTestOutputHelper(testOutputHelper);
     private readonly Guid _nonExistentUserId = Guid.NewGuid();
 
     [Fact]

@@ -8,7 +8,7 @@ namespace OweMe.Identity.IntegrationTests;
 public sealed class StartupTests(ITestOutputHelper testOutputHelper, ProgramWithSeedData factory)
     : IClassFixture<ProgramWithSeedData>
 {
-    private readonly ProgramFixture _factory = factory.AddLogging(testOutputHelper);
+    private readonly ProgramFixture _factory = factory.WithTestOutputHelper(testOutputHelper);
 
     [Fact]
     public async Task Test_DiscoveryDocument_Accessible()

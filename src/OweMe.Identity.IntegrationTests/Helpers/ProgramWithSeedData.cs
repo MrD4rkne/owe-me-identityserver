@@ -1,12 +1,14 @@
+using System.CommandLine;
 using Duende.IdentityServer.Test;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OweMe.Identity.Migrator.Migrations;
+using Microsoft.Extensions.Options;
+using OweMe.Identity.Migrator;
 using OweMe.Identity.Migrator.Seeding;
-using OweMe.Identity.Persistence;
 using OweMe.Identity.Persistence.Users.Domain;
 
 namespace OweMe.Identity.IntegrationTests.Helpers;
@@ -55,18 +57,27 @@ public sealed class ProgramWithSeedData : ProgramFixture
 
         if (_migratorOptions.ShouldMigrate)
         {
-            var services = new ServiceCollection();
-
-            services.AddOweMeStorage(ConnectionString);
-
-            services.AddLogging(logging => logging.AddConsole());
-
-            using var serviceProvider = services.BuildServiceProvider();
-
-            var migrateLogger = serviceProvider.GetRequiredService<ILogger<MigrateCommand>>();
-            var migrator = new MigrateCommand(serviceProvider, migrateLogger);
-            migrator.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
+            var migrator = BuildMigrator();
+            migrator.Parse(["migrate"]).InvokeAsync().GetAwaiter().GetResult();
         }
+    }
+
+    private RootCommand BuildMigrator()
+    {
+        return App.BuildRootCommand((services, _) =>
+        {
+            services.AddSingleton(Options.Create(_migratorOptions.SeedData!));
+            services.AddLogging(logging =>
+            {
+                if (TestOutputHelper != null)
+                {
+                    logging.AddXUnit(TestOutputHelper);
+                }
+            });
+        }, configuration =>
+        {
+            configuration.AddInMemoryCollection([new("ConnectionStrings:DefaultConnection", ConnectionString)]);
+        });
     }
 
     protected override IHost CreateHost(IHostBuilder builder)
@@ -75,17 +86,11 @@ public sealed class ProgramWithSeedData : ProgramFixture
 
         if (_migratorOptions is { ShouldSeed: true, SeedData: not null })
         {
-            var seedLogger = host.Services.GetRequiredService<ILogger<SeedCommand>>();
-            using var scope = host.Services.CreateAsyncScope();
-            var seedCommand = new SeedCommand(
-                scope.ServiceProvider,
-                seedLogger,
-                Microsoft.Extensions.Options.Options.Create(_migratorOptions.SeedData)
-            );
-            seedCommand.ExecuteAsync(CancellationToken.None).GetAwaiter().GetResult();
-        }
+            var migrator = BuildMigrator();
+            migrator.Parse(["seed"]).InvokeAsync().GetAwaiter().GetResult();
 
-        SeedUsers(host.Services, _migratorOptions.TestUsers, CancellationToken.None).GetAwaiter().GetResult();
+            SeedUsers(host.Services, _migratorOptions.TestUsers, CancellationToken.None).GetAwaiter().GetResult();
+        }
 
         return host;
     }

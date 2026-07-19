@@ -15,39 +15,41 @@ internal static class CommandDelegateHelper
         Recursive = true
     };
 
-    internal static void RegisterCommands(this RootCommand rootCommand, Action<IServiceCollection, IConfiguration>? configure = null)
+    internal static void RegisterCommands(this RootCommand rootCommand, Action<IServiceCollection, IConfiguration>? configureServices = null, Action<IConfigurationBuilder>? configureConfiguration = null)
     {
         rootCommand.BindCommand<MigrateCommand>(new("migrate", "Applies all pending migrations to the database.")
         {
             Options = { VerboseOption }
-        }, configure);
+        }, configureServices, configureConfiguration);
 
         rootCommand.BindCommand<SeedCommand>(new("seed", "Seeds the database.")
         {
             Options = { VerboseOption }
         }, (services, configuration) =>
         {
-            configure?.Invoke(services, configuration);
+            configureServices?.Invoke(services, configuration);
             services.AddSeedCommand(configuration);
-        });
+        }, configureConfiguration);
     }
 
-    private static void BindCommand<TCommand>(this RootCommand root, Command command, Action<IServiceCollection, IConfiguration>? configure = null)
+    private static void BindCommand<TCommand>(this RootCommand root, Command command, Action<IServiceCollection, IConfiguration>? configureServices = null, Action<IConfigurationBuilder>? configureConfiguration = null)
         where TCommand : class, ICommand
     {
         command.SetAction((parseResult, cancellationToken) =>
         {
-            var configuration = new ConfigurationBuilder()
+            var configurationBuilder = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true)
-                .Build();
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true);
+                configureConfiguration?.Invoke(configurationBuilder);
+            var configuration = configurationBuilder.Build();
+
             bool isVerbose = parseResult.GetValue(VerboseOption);
             var services = DependencyInjection.CreateProvider(configuration, isVerbose);
 
             services.AddTransient<TCommand>();
-            configure?.Invoke(services, configuration);
+            configureServices?.Invoke(services, configuration);
 
             var serviceProvider = services
                 .BuildServiceProvider()
