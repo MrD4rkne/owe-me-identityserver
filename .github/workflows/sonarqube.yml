@@ -11,35 +11,19 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
-  
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Cache SonarQube Cloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ vars.DOTNET_VERSION }}
-
-      - name: Install SonarQube Cloud scanner
-        run: dotnet tool install --global dotnet-sonarscanner
-
-      - name: Install dotcover
-        run: dotnet tool install --global JetBrains.dotCover.CommandLineTools
           
       - name: Setup docker
         uses: docker/setup-buildx-action@v3
@@ -50,40 +34,11 @@ jobs:
       - name: Get version
         run: echo "${{ steps.nbgv.outputs.SemVer2 }}"
 
-      - name: SonarQube Begin
-        run: |
-          dotnet-sonarscanner begin \
-            /k:"${{ vars.SONAR_PROJECT_KEY }}" \
-            /o:"${{ vars.SONAR_ORG }}" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
-            /d:sonar.host.url="${{ vars.SONAR_HOST_URL }}" \
-            /d:sonar.cs.dotcover.reportsPaths="dotCover.Output.html" \
-            /d:sonar.scanner.scanAll=false \
-            /d:sonar.qualitygate.wait=true \
-            /d:sonar.qualitygate.timeout=300 \
-            /d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**"
-
-      - name: Dotnet restore
-        run: |
-          dotnet restore
-          
-      - name: Build
-        run: |
-          dotnet build --configuration Release --no-restore
-          
-      - name: Test with coverage
-        id: test
-        run: |
-          dotCover cover-dotnet \
-            --reportType=HTML \
-            --AttributeFilters=System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute \
-            --Output=dotCover.Output.html \
-            -- test --configuration Release --no-build
-
-      - name: List test results
-        run: |
-          find . -name "*.xml" -o -name "*.trx" -type f
-
-      - name: SonarQube End
-        run: |
-          dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: SonarScanner for .NET 10 with pull request decoration support
+        uses: highbyte/sonarscan-dotnet@v2.5.1
+        with:
+          sonarProjectKey: ${{ vars.SONAR_PROJECT_KEY }}
+          sonarProjectName:  ${{ vars.SONAR_PROJECT_NAME }}
+          sonarOrganization: ${{ vars.SONAR_ORG }}
+          dotnetTestArguments: --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+          sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.scanner.scanAll=false -d:sonar.qualitygate.wait=true -d:sonar.qualitygate.timeout=300 -d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**"
