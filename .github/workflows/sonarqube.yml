@@ -38,7 +38,7 @@ jobs:
         uses: highbyte/sonarscan-dotnet@v2.5.1
         with:
           sonarProjectKey: ${{ vars.SONAR_PROJECT_KEY }}
-          sonarProjectName:  ${{ vars.SONAR_PROJECT_NAME }}
+          sonarProjectName:  ${{ vars.SONAR_PROJECT_KEY }}
           sonarOrganization: ${{ vars.SONAR_ORG }}
           dotnetTestArguments: --logger trx --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
           sonarBeginArguments: /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" -d:sonar.scanner.scanAll=false -d:sonar.qualitygate.wait=true -d:sonar.qualitygate.timeout=300 -d:sonar.exclusions="**/Pages/**,**/Migrations/**,**/wwwroot/**"
