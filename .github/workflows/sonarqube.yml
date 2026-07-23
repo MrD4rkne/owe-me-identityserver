@@ -34,7 +34,7 @@ jobs:
       - name: Get version
         run: echo "${{ steps.nbgv.outputs.SemVer2 }}"
 
-      - name: SonarScanner for .NET 10 with pull request decoration support
+      - name: SonarQube Scan
         uses: highbyte/sonarscan-dotnet@v2.5.1
         with:
           sonarProjectKey: ${{ vars.SONAR_PROJECT_KEY }}
