@@ -6,9 +6,9 @@
 
     <ItemGroup>
         <PackageReference Include="coverlet.collector" />
+        <PackageReference Include="MartinCostello.Logging.XUnit" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
-        <PackageReference Include="Serilog.Sinks.XUnit" />
         <PackageReference Include="Shouldly" />
         <PackageReference Include="Testcontainers" />
         <PackageReference Include="Testcontainers.PostgreSql" />
@@ -24,6 +24,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\OweMe.Identity.Server\OweMe.Identity.Server.csproj" />
+      <ProjectReference Include="..\OweMe.Identity.Migrator\OweMe.Identity.Migrator.csproj" />
     </ItemGroup>
 
 </Project>

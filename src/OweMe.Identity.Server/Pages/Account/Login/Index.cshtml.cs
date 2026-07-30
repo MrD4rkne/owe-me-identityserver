@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using OweMe.Identity.Server.Users.Domain;
+using OweMe.Identity.Persistence.Users.Domain;
 
 namespace OweMe.Identity.Server.Pages.Login;
 
@@ -69,7 +69,7 @@ public class Index : PageModel
                 // This "can't happen", because if the ReturnUrl was null, then the context would be null
                 ArgumentNullException.ThrowIfNull(Input.ReturnUrl, nameof(Input.ReturnUrl));
 
-                // if the user cancels, send a result back into IdentityServer as if they 
+                // if the user cancels, send a result back into IdentityServer as if they
                 // denied the consent (even if this client does not require consent).
                 // this will send back an access denied OIDC error response to the client.
                 await _interaction.DenyAuthorizationAsync(context, AuthorizationError.AccessDenied);
@@ -105,7 +105,7 @@ public class Index : PageModel
                     Telemetry.Metrics.UserLogin(context?.Client.ClientId,
                         IdentityServerConstants.LocalIdentityProvider);
 
-                    // only set explicit expiration here if user chooses "remember me". 
+                    // only set explicit expiration here if user chooses "remember me".
                     // otherwise we rely upon expiration configured in cookie middleware.
                     var props = new AuthenticationProperties();
                     if (LoginOptions.AllowRememberLogin && Input.RememberLogin)

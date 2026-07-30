@@ -4,16 +4,21 @@
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 	</PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\OweMe.Identity.Persistence\OweMe.Identity.Persistence.csproj" />
+    </ItemGroup>
+
 	<ItemGroup>
-		<PackageReference Include="Duende.IdentityModel" /> 
+		<PackageReference Include="Duende.IdentityModel" />
 		<PackageReference Include="Duende.IdentityServer" />
 		<PackageReference Include="Duende.IdentityServer.AspNetIdentity" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" />
 		<PackageReference Include="Duende.IdentityServer.Storage" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" >
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -22,13 +27,7 @@
 		<PackageReference Include="OpenTelemetry.Extensions.Hosting" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Http" />
-
-		<PackageReference Include="Serilog.AspNetCore" />
-		<PackageReference Include="Serilog.Enrichers.Span" />
-		<PackageReference Include="Serilog.Settings.Configuration" />
-		<PackageReference Include="Serilog.Sinks.Console" />
-        <PackageReference Include="Serilog.Sinks.ApplicationInsights"/>
-		<PackageReference Include="Serilog.Sinks.OpenTelemetry" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
 	</ItemGroup>
 
 	<ItemGroup>

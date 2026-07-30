@@ -1,17 +1,16 @@
 ﻿using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using OweMe.Identity.IntegrationTests.Helpers;
-using Serilog;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OweMe.Identity.Server.Data;
 using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
 
-namespace OweMe.Identity.IntegrationTests;
+namespace OweMe.Identity.IntegrationTests.Helpers;
 
-public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifetime
+public class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly List<Action<IWebHostBuilder>> _configureTestServices = new();
-
     private readonly PostgreSqlContainer _databaseContainer = new PostgreSqlBuilder()
         .WithDatabase("testdb")
         .WithUsername("postgres")
@@ -19,9 +18,19 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
         .WithPortBinding(5432, true)
         .Build();
 
+    protected ITestOutputHelper? TestOutputHelper { get; private set; }
+
+    public ProgramFixture WithTestOutputHelper(ITestOutputHelper testOutputHelper)
+    {
+        TestOutputHelper = testOutputHelper;
+        return this;
+    }
+
+    protected string ConnectionString => _databaseContainer.GetConnectionString();
+
     public Task InitializeAsync()
     {
-        return _databaseContainer.StartAsync();
+        return Task.CompletedTask;
     }
 
     public new Task DisposeAsync()
@@ -31,36 +40,22 @@ public sealed class ProgramFixture : WebApplicationFactory<Program>, IAsyncLifet
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.WithConnectionString(_databaseContainer.GetConnectionString());
+        _databaseContainer.StartAsync().GetAwaiter().GetResult();
+        var connectionString = _databaseContainer.GetConnectionString();
 
-        foreach (var configureTestService in _configureTestServices)
-        {
-            configureTestService(builder);
-        }
+        builder.UseSetting($"ConnectionStrings:{Constants.ConnectionStringName}", connectionString);
 
         builder.WithConfigure<OperationalStoreOptions>(options => { options.EnableTokenCleanup = false; });
-    }
 
-    /// <summary>
-    ///     Configure test services for the application.
-    /// </summary>
-    /// <param name="configure">Action to configure the web host builder.</param>
-    public ProgramFixture ConfigureTestServices(Action<IWebHostBuilder> configure)
-    {
-        _configureTestServices.Add(configure);
-        return this;
-    }
-
-    public ProgramFixture AddLogging(ITestOutputHelper testOutputHelper)
-    {
-        return ConfigureTestServices(configure => configure.ConfigureServices(services =>
+        builder.ConfigureServices(services =>
         {
-            services.AddSerilog(
-                new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .WriteTo.TestOutput(testOutputHelper,
-                        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                    .CreateLogger());
-        }));
+            services.AddLogging(logging =>
+            {
+                if (TestOutputHelper != null)
+                {
+                    logging.AddXUnit(TestOutputHelper);
+                }
+            });
+        });
     }
 }

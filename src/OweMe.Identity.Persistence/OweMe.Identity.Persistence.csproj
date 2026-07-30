@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Duende.IdentityServer.EntityFramework" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include=".ef\application.rsp" />
+    <Content Include=".ef\configuration.rsp" />
+    <Content Include=".ef\dataprotection.rsp" />
+    <Content Include=".ef\persistedgrant.rsp" />
+  </ItemGroup>
+
+</Project>

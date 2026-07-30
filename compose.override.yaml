@@ -6,5 +6,10 @@ name: oweme-system
 services:
   oweme.identity:
     build:
-      context: ./owe-me-identityserver
+      context: .
       dockerfile: src/OweMe.Identity.Server/Dockerfile
+
+  oweme.identity.migrator:
+      build:
+          context: .
+          dockerfile: src/OweMe.Identity.Server/Dockerfile

@@ -1,0 +1,56 @@
+services:
+  - type: web
+    name: owe-me-identity
+    runtime: image
+    region: frankfurt
+    plan: free
+    image:
+      url: ghcr.io/mrd4rkne/owe-me-identityserver/owe-me-identity:1.0.56-g256841c4b3
+    preDeployCommand: dotnet /app/migrator/OweMe.Identity.Migrator.dll migrate -v
+    envVars:
+      - key: MIGRATIONS_CONNECTION_STRING
+        sync: false
+
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+
+      - key: Migrations__ApplyMigrations
+        value: "true"
+      - key: Migrations__SeedData
+        value: "true"
+      - fromGroup: dotnet-app-defaults
+
+      - key: OweMe__Identity__ApiScopes__0__Name
+        value: oweme-api
+      - key: OweMe__Identity__ApiScopes__0__DisplayName
+        value: oweme-api
+      - key: OweMe__Identity__ApiScopes__1__Name
+        value: IdentityServerApi
+      - key: OweMe__Identity__ApiScopes__1__DisplayName
+        value: IdentityServerApi
+      - key: OweMe__Identity__Clients__0__ClientId
+        value: oweme-client
+      - key: OweMe__Identity__Clients__0__ClientSecret
+        value: oweme-client
+      - key: OweMe__Identity__Clients__0__ClientName
+        value: OweMe Client
+      - key: OweMe__Identity__Clients__0__AllowedScopes__0
+        value: oweme-api
+      - key: OweMe__Identity__Clients__0__AllowedGrantTypes__0
+        value: password
+      - key: OweMe__Identity__Clients__0__ClientSecrets__0__Value
+        sync: false
+      - key: OweMe__Identity__Clients__1__ClientId
+        value: oweme-api
+      - key: OweMe__Identity__Clients__1__ClientName
+        value: OweMe API
+      - key: OweMe__Identity__Clients__1__AllowedScopes__0
+        value: IdentityServerApi
+      - key: OweMe__Identity__Clients__1__AllowedGrantTypes__0
+        value: client_credentials
+      - key: OweMe__Identity__Clients__1__ClientSecrets__0__Value
+        sync: false
+      - key: OweMe__Identity__Users__0__UserName
+        value: alice
+      - key: OweMe__Identity__Users__0__Password
+        sync: false

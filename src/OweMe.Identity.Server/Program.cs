@@ -1,26 +1,37 @@
 ﻿using Duende.IdentityServer;
-using OweMe.Identity.Server.Setup;
-using Serilog;
-using Serilog.Enrichers.Span;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Logs;
+using OweMe.Identity.Persistence;
+using OweMe.Identity.Server;
+using OweMe.Identity.Server.Data;
+
+using var loggerFactory = LoggerFactory.Create(logging => logging.AddConsole());
+var bootstrapLogger = loggerFactory.CreateLogger("Startup");
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (Log.Logger.GetType().FullName == "Serilog.Core.Pipeline.SilentLogger")
-{
-    Log.Logger = new LoggerConfiguration()
-        .Enrich.FromLogContext()
-        .Enrich.WithSpan()
-        .ReadFrom.Configuration(builder.Configuration)
-        .CreateBootstrapLogger();
-}
+builder.Logging.ClearProviders();
 
-builder.Host.UseSerilog();
-builder.Services.AddSerilog();
+builder.Logging.AddSimpleConsole(options =>
+{
+    options.IncludeScopes = true;
+    options.SingleLine = true;
+    options.TimestampFormat = "HH:mm:ss ";
+});
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeScopes = true;
+    logging.IncludeFormattedMessage = true;
+    logging.AddOtlpExporter();
+});
 
 builder.Services.AddOpenTelemetry()
-    .WithLogging()
+    .WithLogging(b =>
+    {
+        b.AddOtlpExporter();
+    })
     .WithTracing(b =>
     {
         b.AddAspNetCoreInstrumentation();
@@ -30,32 +41,34 @@ builder.Services.AddOpenTelemetry()
             .AddSource(IdentityServerConstants.Tracing.Services)
             .AddSource(IdentityServerConstants.Tracing.Stores)
             .AddSource(IdentityServerConstants.Tracing.Validation);
+        b.AddOtlpExporter();
     })
     .WithMetrics(b =>
     {
         b.AddAspNetCoreInstrumentation();
         b.AddHttpClientInstrumentation();
+        b.AddOtlpExporter();
     }).WithLogging();
-
-Log.Information("Starting up");
 
 try
 {
-    var app = builder
-        .AddIdentityServer()
-        .Build()
-        .ConfigurePipeline();
+    builder.AddConnectionStringFromEnv();
 
+    builder.Services.AddOweMeStorage(builder.Configuration.GetConnectionString(Constants.ConnectionStringName));
+
+    builder.AddIdentityServer();
+
+    var app = builder.Build()
+        .ConfigurePipeline();
     await app.RunAsync();
 }
 catch (Exception ex) when (ex is not HostAbortedException && ex.Source != "Microsoft.EntityFrameworkCore.Design") // see https://github.com/dotnet/efcore/issues/29923
 {
-    Log.Fatal(ex, "Unhandled exception during application startup");
+    bootstrapLogger.LogCritical(ex, "Unhandled exception during application startup");
 }
 finally
 {
-    Log.Information("Shut down complete");
-    await Log.CloseAndFlushAsync();
+    bootstrapLogger.LogInformation("Shut down complete");
 }
 
 public partial class Program;
